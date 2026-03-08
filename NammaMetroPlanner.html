@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Namma Metro — Journey Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root {
+  --cream:    #F5F0E8;
+  --cream2:   #EDE6D6;
+  --cream3:   #E4DBC8;
+  --parchment:#D9CEB5;
+  --ink:      #1A1612;
+  --ink2:     #3D3529;
+  --ink3:     #6B5E4E;
+  --ink4:     #9C8E80;
+  --rule:     #C8BAA4;
+  --purple:   #5B2D8E;
+  --purple-l: #7B4AB8;
+  --purple-bg:#F0EAF8;
+  --green:    #1A6B35;
+  --green-l:  #2A8B47;
+  --green-bg: #E8F4EC;
+  --yellow:   #8B6000;
+  --yellow-l: #B07A00;
+  --yellow-bg:#FDF3DC;
+  --red:      #B83232;
+  --shadow-sm: 0 1px 3px rgba(26,22,18,0.08), 0 1px 2px rgba(26,22,18,0.06);
+  --shadow:    0 4px 16px rgba(26,22,18,0.10), 0 1px 4px rgba(26,22,18,0.08);
+  --shadow-lg: 0 12px 40px rgba(26,22,18,0.14), 0 4px 12px rgba(26,22,18,0.08);
+  --radius: 12px; --radius-sm: 7px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.5;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--cream2);}::-webkit-scrollbar-thumb{background:var(--parchment);border-radius:3px;}
+
+/* HEADER */
+header{background:var(--ink);color:var(--cream);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.logo{display:flex;align-items:center;gap:12px;cursor:pointer;}
+.logo-mark{width:34px;height:34px;background:var(--cream);border-radius:6px;display:flex;align-items:center;justify-content:center;}
+.logo-text{font-family:'EB Garamond',serif;font-size:1.2rem;font-weight:500;letter-spacing:.01em;}
+.logo-sub{font-size:.65rem;color:rgba(245,240,232,.45);letter-spacing:.12em;text-transform:uppercase;display:block;margin-top:-2px;}
+.header-nav{display:flex;gap:2px;}
+.header-btn{padding:6px 14px;border:none;border-radius:6px;background:transparent;color:rgba(245,240,232,.6);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .15s;letter-spacing:.02em;}
+.header-btn:hover{background:rgba(255,255,255,.08);color:var(--cream);}
+.header-btn.active{background:rgba(255,255,255,.12);color:var(--cream);}
+.live-badge{display:flex;align-items:center;gap:6px;font-size:.7rem;color:#4EB87A;letter-spacing:.05em;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#4EB87A;animation:blink 2.5s ease infinite;}
+@keyframes blink{0%,80%,100%{opacity:1}40%{opacity:.3}}
+
+/* PAGES */
+.page{display:none;}.page.active{display:block;}
+
+/* PLANNER LAYOUT */
+.planner-layout{display:grid;grid-template-columns:440px 1fr;height:calc(100vh - 56px);}
+.sidebar{background:var(--cream);border-right:1px solid var(--rule);overflow-y:auto;display:flex;flex-direction:column;}
+.sidebar-header{padding:1.5rem 1.75rem 1rem;border-bottom:1px solid var(--rule);}
+.sidebar-title{font-family:'EB Garamond',serif;font-size:1.5rem;font-weight:400;color:var(--ink);margin-bottom:2px;}
+.sidebar-sub{font-size:.75rem;color:var(--ink4);letter-spacing:.06em;text-transform:uppercase;}
+.form-body{padding:1.5rem 1.75rem;flex:1;}
+
+/* FIELD LABELS */
+.field-label{display:flex;align-items:center;gap:8px;font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;}
+.label-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.label-dot.from{background:var(--green);}
+.label-dot.to{background:var(--purple);}
+
+/* MODE TOGGLE */
+.mode-toggle{display:flex;background:var(--cream2);border:1px solid var(--rule);border-radius:var(--radius-sm);padding:3px;margin-bottom:10px;gap:2px;}
+.mode-btn{flex:1;padding:7px 10px;border:none;border-radius:5px;background:transparent;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.mode-btn.active{background:white;color:var(--ink);box-shadow:var(--shadow-sm);}
+.mode-btn svg{width:14px;height:14px;flex-shrink:0;}
+
+/* GPS BUTTON */
+.gps-btn{width:100%;padding:13px 16px;background:var(--green-bg);border:1px solid #A8D8B5;border-radius:var(--radius-sm);color:var(--green);font-family:'DM Sans',sans-serif;font-size:.875rem;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .18s;text-align:left;}
+.gps-btn:hover{background:#D8EFE0;border-color:#80C49A;}
+.gps-btn:active{transform:translateY(1px);}
+.gps-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;}
+.gps-btn svg{width:18px;height:18px;flex-shrink:0;}
+.gps-status{margin-top:8px;padding:8px 12px;border-radius:6px;font-size:.78rem;display:none;align-items:center;gap:8px;}
+.gps-status.loading{background:var(--cream2);color:var(--ink3);display:flex;}
+.gps-status.success{background:var(--green-bg);color:var(--green);display:flex;}
+.gps-status.error{background:#FCE8E8;color:var(--red);display:flex;}
+
+/* ADDRESS INPUT */
+.addr-wrap{position:relative;}
+.address-input{width:100%;padding:11px 14px;background:white;border:1px solid var(--rule);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--ink);transition:all .15s;outline:none;}
+.address-input:focus{border-color:var(--ink3);box-shadow:0 0 0 3px rgba(26,22,18,.06);}
+.address-input::placeholder{color:var(--ink4);}
+.search-hint{font-size:.72rem;color:var(--ink4);margin-top:5px;padding:0 2px;}
+.addr-resolving{font-size:.72rem;color:var(--green);margin-top:4px;display:none;}
+
+/* STATION AUTOCOMPLETE */
+.stn-wrap{position:relative;}
+.stn-input{width:100%;padding:11px 14px;background:white;border:1px solid var(--rule);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--ink);outline:none;transition:all .15s;}
+.stn-input:focus{border-color:var(--ink3);box-shadow:0 0 0 3px rgba(26,22,18,.06);}
+.stn-input::placeholder{color:var(--ink4);}
+.autocomplete{position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:1px solid var(--rule);border-radius:var(--radius-sm);box-shadow:var(--shadow);z-index:100;max-height:220px;overflow-y:auto;display:none;}
+.ac-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--cream2);transition:background .1s;display:flex;align-items:center;justify-content:space-between;}
+.ac-item:last-child{border-bottom:none;}
+.ac-item:hover{background:var(--cream2);}
+.ac-name{font-size:.875rem;color:var(--ink);}
+.ac-meta{display:flex;gap:4px;align-items:center;}
+.lc{font-size:.6rem;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:3px;text-transform:uppercase;}
+.lc.purple{background:var(--purple-bg);color:var(--purple);}
+.lc.green{background:var(--green-bg);color:var(--green);}
+.lc.yellow{background:var(--yellow-bg);color:var(--yellow);}
+.ic-tag{font-size:.6rem;color:var(--ink4);padding:2px 6px;background:var(--cream2);border-radius:3px;}
+
+/* DIVIDER */
+.form-div{display:flex;align-items:center;gap:10px;margin:8px 0;}
+.div-rule{flex:1;height:1px;background:var(--rule);}
+.swap-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--rule);background:white;color:var(--ink3);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:var(--shadow-sm);}
+.swap-btn:hover{background:var(--cream2);transform:rotate(180deg);}
+
+/* PLAN BUTTON */
+.plan-btn{width:100%;margin-top:1.25rem;padding:14px;background:var(--ink);color:var(--cream);border:none;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.02em;}
+.plan-btn:hover{background:var(--ink2);}
+.plan-btn:active{transform:translateY(1px);}
+.plan-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.plan-btn svg{width:16px;height:16px;}
+
+/* ERROR */
+.err-msg{margin-top:10px;padding:10px 14px;background:#FCE8E8;border:1px solid #EAB8B8;border-radius:var(--radius-sm);font-size:.82rem;color:var(--red);display:none;}
+
+/* RESULT */
+.result-wrap{border-top:1px solid var(--rule);animation:slideIn .3s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* SUMMARY CARD */
+.summary-card{margin:1.25rem 1.75rem;background:var(--ink);color:var(--cream);border-radius:var(--radius);padding:1.25rem;position:relative;overflow:hidden;}
+.summary-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:repeating-linear-gradient(to bottom,rgba(245,240,232,.18) 0,rgba(245,240,232,.18) 5px,transparent 5px,transparent 10px);}
+.summary-route{display:flex;align-items:center;gap:8px;margin-bottom:1rem;font-size:.85rem;color:rgba(245,240,232,.6);}
+.summary-route strong{color:var(--cream);}
+.r-arrow{color:rgba(245,240,232,.3);}
+.summary-stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(245,240,232,.1);padding-top:.875rem;}
+.stat{text-align:center;padding:0 4px;border-right:1px solid rgba(245,240,232,.08);}
+.stat:last-child{border-right:none;}
+.stat-val{font-family:'DM Mono',monospace;font-size:1.25rem;font-weight:500;color:var(--cream);display:block;line-height:1.2;}
+.stat-lbl{font-size:.58rem;color:rgba(245,240,232,.4);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;display:block;}
+.fare-row{margin-top:.875rem;padding:9px 13px;background:rgba(255,255,255,.06);border-radius:6px;display:flex;align-items:center;justify-content:space-between;}
+.fare-lbl{font-size:.72rem;color:rgba(245,240,232,.5);text-transform:uppercase;letter-spacing:.07em;}
+.fare-amt{font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:500;color:#F0C96A;}
+
+/* STEPS */
+.steps-section{padding:0 1.75rem 2rem;}
+.steps-heading{font-family:'EB Garamond',serif;font-size:1rem;font-weight:400;color:var(--ink3);font-style:italic;margin-bottom:.875rem;padding-top:.25rem;}
+.step-row{display:flex;position:relative;}
+.step-line-col{width:36px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.step-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;z-index:1;border:1.5px solid;position:relative;}
+.step-dot.walk{background:white;border-color:var(--rule);color:var(--ink3);}
+.step-dot.board{background:white;border-color:var(--ink2);color:var(--ink);}
+.step-dot.travel{background:white;border-color:var(--rule);color:var(--ink4);}
+.step-dot.transfer{background:#FFF7E0;border-color:var(--yellow);color:var(--yellow);}
+.step-dot.alight{background:white;border-color:var(--rule);color:var(--ink3);}
+.step-dot.arrive{background:var(--ink);border-color:var(--ink);color:var(--cream);}
+.step-track{width:1.5px;flex:1;min-height:16px;margin:0 auto;}
+.step-track.purple{background:var(--purple-l);}
+.step-track.green{background:var(--green-l);}
+.step-track.yellow{background:var(--yellow-l);}
+.step-track.dashed{background:repeating-linear-gradient(to bottom,var(--rule) 0,var(--rule) 4px,transparent 4px,transparent 8px);}
+.step-track.solid{background:var(--rule);}
+.step-body{flex:1;padding:0 0 20px 12px;}
+.step-tag{font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink4);margin-bottom:3px;}
+.step-main{font-size:.92rem;font-weight:500;color:var(--ink);line-height:1.35;margin-bottom:3px;}
+.step-detail{font-size:.78rem;color:var(--ink3);line-height:1.4;}
+
+/* PLATFORM BADGE */
+.platform-badge{display:inline-flex;align-items:center;gap:7px;margin-top:8px;padding:7px 13px;border-radius:6px;border:1px solid;font-size:.78rem;font-weight:500;}
+.platform-badge.purple{background:var(--purple-bg);border-color:#C4A8E8;color:var(--purple);}
+.platform-badge.green{background:var(--green-bg);border-color:#8EC8A4;color:var(--green);}
+.platform-badge.yellow{background:var(--yellow-bg);border-color:#D4B060;color:var(--yellow);}
+.plat-num{font-family:'DM Mono',monospace;font-size:1.15rem;font-weight:500;line-height:1;}
+.plat-div{width:1px;height:18px;background:currentColor;opacity:.2;}
+.plat-dir{font-style:italic;font-size:.76rem;}
+.plat-label{font-size:.62rem;opacity:.65;letter-spacing:.04em;}
+
+/* TRANSFER BOX */
+.transfer-box{margin:6px 0 0;padding:10px 13px;background:var(--yellow-bg);border:1px solid #D4B060;border-left:3px solid var(--yellow-l);border-radius:0 6px 6px 0;font-size:.8rem;}
+.transfer-title{font-weight:600;color:var(--yellow);margin-bottom:3px;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;}
+.transfer-inst{color:var(--ink2);line-height:1.55;}
+
+/* MAP */
+.map-col{position:relative;}
+#main-map{width:100%;height:calc(100vh - 56px);}
+.map-legend{position:absolute;bottom:24px;left:16px;z-index:400;background:white;border:1px solid var(--rule);border-radius:var(--radius-sm);padding:12px 14px;box-shadow:var(--shadow);}
+.legend-title{font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink4);margin-bottom:8px;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--ink2);margin-bottom:5px;}
+.legend-item:last-child{margin-bottom:0;}
+.legend-sw{width:20px;height:3px;border-radius:2px;flex-shrink:0;}
+
+/* HOME PAGE */
+.home-page{min-height:calc(100vh - 56px);display:grid;grid-template-columns:1fr 1fr;}
+.home-left{background:var(--cream);padding:4rem 3rem;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--rule);}
+.home-eyebrow{font-size:.68rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--ink4);margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;}
+.home-eyebrow::before{content:'';display:inline-block;width:24px;height:1px;background:var(--rule);}
+.home-title{font-family:'EB Garamond',serif;font-size:clamp(2.2rem,4vw,3.2rem);font-weight:400;line-height:1.15;color:var(--ink);margin-bottom:1.25rem;}
+.home-title em{font-style:italic;color:var(--ink3);}
+.home-desc{font-size:.95rem;color:var(--ink3);line-height:1.7;max-width:380px;margin-bottom:2.5rem;}
+.home-planner{background:white;border:1px solid var(--rule);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);max-width:420px;}
+.home-planner-label{font-size:.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink4);margin-bottom:1rem;}
+.home-right{background:var(--ink);position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding:3rem;}
+.net-bg{position:absolute;inset:0;opacity:.05;display:flex;align-items:center;justify-content:center;}
+.home-stats{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,1fr);gap:1px;width:100%;background:rgba(245,240,232,.08);border-radius:8px;overflow:hidden;}
+.home-stat{padding:1.5rem;background:rgba(245,240,232,.04);}
+.hs-num{font-family:'DM Mono',monospace;font-size:2rem;font-weight:400;color:var(--cream);display:block;margin-bottom:4px;}
+.hs-lbl{font-size:.72rem;color:rgba(245,240,232,.4);text-transform:uppercase;letter-spacing:.08em;}
+.home-tagline{position:relative;z-index:1;font-family:'EB Garamond',serif;font-size:1.1rem;font-style:italic;color:rgba(245,240,232,.3);margin-bottom:2rem;}
+
+/* METRO MAP PAGE */
+#metro-map-full{width:100%;height:calc(100vh - 56px);}
+.map-overlay{position:absolute;top:16px;left:16px;z-index:400;background:white;border:1px solid var(--rule);border-radius:var(--radius-sm);padding:14px 16px;box-shadow:var(--shadow);}
+.map-overlay-title{font-family:'EB Garamond',serif;font-size:1.1rem;color:var(--ink);margin-bottom:10px;}
+
+/* LOADING */
+.loading-veil{position:fixed;inset:0;z-index:999;background:rgba(245,240,232,.75);backdrop-filter:blur(6px);display:none;place-items:center;}
+.loading-veil.show{display:grid;}
+.loading-card{background:white;border:1px solid var(--rule);border-radius:var(--radius);padding:2.5rem 3rem;text-align:center;box-shadow:var(--shadow-lg);}
+.loading-spinner{width:36px;height:36px;border:2px solid var(--rule);border-top-color:var(--ink);border-radius:50%;margin:0 auto 1rem;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:.875rem;color:var(--ink3);}
+
+/* ABOUT */
+.about-page{max-width:780px;margin:0 auto;padding:3rem 2rem 5rem;}
+.about-title{font-family:'EB Garamond',serif;font-size:2rem;font-weight:400;margin-bottom:.75rem;}
+.about-intro{color:var(--ink3);line-height:1.8;font-size:.95rem;margin-bottom:3rem;padding-bottom:2rem;border-bottom:1px solid var(--rule);}
+.about-section{margin-bottom:2.5rem;}
+.about-section-title{font-family:'EB Garamond',serif;font-size:1.2rem;font-weight:400;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--rule);}
+.about-card{background:white;border:1px solid var(--rule);border-radius:var(--radius-sm);padding:1.25rem 1.5rem;margin-bottom:.75rem;}
+.about-card-title{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--ink3);margin-bottom:.5rem;}
+.about-card-body{font-size:.875rem;color:var(--ink2);line-height:1.7;}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .planner-layout{grid-template-columns:1fr;}
+  .map-col{display:none;}
+  .home-page{grid-template-columns:1fr;}
+  .home-right{display:none;}
+  .home-left{padding:2rem 1.5rem;}
+  .header-nav{display:none;}
+  .summary-stats{grid-template-columns:repeat(2,1fr);gap:.5rem;}
+}
+@media(max-width:480px){
+  .home-planner,.form-body{padding:1rem;}
+  .steps-section,.summary-card{padding-left:1rem;padding-right:1rem;margin-left:0;margin-right:0;}
+}
+
+/* LEAFLET */
+.leaflet-popup-content-wrapper{border-radius:8px!important;box-shadow:var(--shadow)!important;border:1px solid var(--rule)!important;}
+.leaflet-popup-content{font-family:'DM Sans',sans-serif!important;}
+.leaflet-control-zoom{border:1px solid var(--rule)!important;}
+.leaflet-control-zoom a{color:var(--ink)!important;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" onclick="showPage('home')">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="6" width="18" height="12" rx="2.5" fill="#1A1612"/>
+        <rect x="3" y="6" width="18" height="12" rx="2.5" stroke="#1A1612" stroke-width="1.5"/>
+        <circle cx="7" cy="19" r="2" fill="#1A1612"/>
+        <circle cx="17" cy="19" r="2" fill="#1A1612"/>
+        <rect x="6" y="9" width="12" height="5" rx="1.5" fill="white" opacity=".9"/>
+        <rect x="6" y="9" width="5.5" height="5" rx="1.5" fill="#5B2D8E"/>
+      </svg>
+    </div>
+    <div>
+      <span class="logo-text">Namma Metro</span>
+      <span class="logo-sub">Journey Planner · Bengaluru</span>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <button class="header-btn active" data-page="home" onclick="showPage('home')">Home</button>
+    <button class="header-btn" data-page="planner" onclick="showPage('planner')">Plan Route</button>
+    <button class="header-btn" data-page="metromap" onclick="showPage('metromap')">Network Map</button>
+    <button class="header-btn" data-page="about" onclick="showPage('about')">About</button>
+  </nav>
+  <div class="live-badge"><div class="live-dot"></div>Service Active</div>
+</header>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="home-page">
+    <div class="home-left">
+      <p class="home-eyebrow">Bengaluru · Namma Metro</p>
+      <h1 class="home-title">Plan your journey<br><em>across the city</em></h1>
+      <p class="home-desc">Get step-by-step metro directions with platform numbers, interchange guidance, and fare estimates. Use your current location or enter any Bengaluru address.</p>
+
+      <div class="home-planner">
+        <p class="home-planner-label">Quick Planner</p>
+
+        <div style="margin-bottom:.75rem">
+          <div class="field-label"><span class="label-dot from"></span>From</div>
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="home-gps-btn" onclick="setMode('home','gps')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2.5M8 11.5V14M1 8h2.5M11.5 8H14"/><circle cx="8" cy="8" r="5.5" stroke-dasharray="2.5 2"/></svg>
+              Current Location
+            </button>
+            <button class="mode-btn" id="home-addr-btn" onclick="setMode('home','addr')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.5C5.5 1.5 3.5 3.5 3.5 6c0 3.5 4.5 8.5 4.5 8.5S12.5 9.5 12.5 6C12.5 3.5 10.5 1.5 8 1.5z"/><circle cx="8" cy="6" r="1.5"/></svg>
+              Enter Address
+            </button>
+          </div>
+          <div id="home-gps-panel">
+            <button class="gps-btn" onclick="requestGPS('home')" id="home-gps-action-btn">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 2v3M10 15v3M2 10h3M15 10h3"/><circle cx="10" cy="10" r="7" stroke-dasharray="2.5 2"/></svg>
+              Detect my current location
+            </button>
+            <div class="gps-status" id="home-gps-status"></div>
+          </div>
+          <div id="home-addr-panel" style="display:none">
+            <div class="addr-wrap">
+              <input type="text" class="address-input" id="home-addr-input" placeholder="e.g. 12th Main, Indiranagar, Bengaluru" oninput="handleAddrInput(this,'home')" autocomplete="off"/>
+            </div>
+            <p class="search-hint">Enter your address or a nearby landmark in Bengaluru</p>
+            <p class="addr-resolving" id="home-addr-resolving">⟳ Finding location…</p>
+          </div>
+        </div>
+
+        <div class="form-div"><div class="div-rule"></div><button class="swap-btn" onclick="swapAll('home')" title="Swap">⇅</button><div class="div-rule"></div></div>
+
+        <div style="margin-top:.75rem">
+          <div class="field-label"><span class="label-dot to"></span>To</div>
+          <div class="stn-wrap">
+            <input type="text" class="stn-input" id="home-dest" placeholder="Search destination station…" oninput="handleStationInput(this,'home','dest')" autocomplete="off"/>
+            <div class="autocomplete" id="home-dest-ac"></div>
+          </div>
+        </div>
+
+        <button class="plan-btn" onclick="planFromHome()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          Find Route
+        </button>
+        <div class="err-msg" id="home-error"></div>
+      </div>
+    </div>
+
+    <div class="home-right">
+      <div class="net-bg">
+        <svg width="480" height="480" viewBox="0 0 480 480" fill="none"><line x1="40" y1="240" x2="440" y2="240" stroke="white" stroke-width="4"/><line x1="240" y1="40" x2="240" y2="440" stroke="white" stroke-width="4"/><line x1="70" y1="400" x2="400" y2="120" stroke="white" stroke-width="4"/><circle cx="240" cy="240" r="10" fill="white"/><circle cx="140" cy="240" r="6" fill="white"/><circle cx="340" cy="240" r="6" fill="white"/><circle cx="240" cy="140" r="6" fill="white"/><circle cx="240" cy="340" r="6" fill="white"/><circle cx="340" cy="150" r="7" fill="white"/><circle cx="170" cy="320" r="5" fill="white"/><circle cx="380" cy="200" r="5" fill="white"/></svg>
+      </div>
+      <p class="home-tagline">"Namma city, namma metro"</p>
+      <div class="home-stats">
+        <div class="home-stat"><span class="hs-num">83</span><span class="hs-lbl">Stations</span></div>
+        <div class="home-stat"><span class="hs-num">3</span><span class="hs-lbl">Lines</span></div>
+        <div class="home-stat"><span class="hs-num">96.1</span><span class="hs-lbl">Route km</span></div>
+        <div class="home-stat"><span class="hs-num">₹10</span><span class="hs-lbl">Min fare</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PLANNER -->
+<div id="page-planner" class="page">
+  <div class="planner-layout">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2 class="sidebar-title">Route Planner</h2>
+        <p class="sidebar-sub">Namma Metro · Bengaluru</p>
+      </div>
+      <div class="form-body">
+        <!-- FROM -->
+        <div style="margin-bottom:.75rem">
+          <div class="field-label"><span class="label-dot from"></span>Your Starting Point</div>
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="plan-gps-btn" onclick="setMode('plan','gps')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2.5M8 11.5V14M1 8h2.5M11.5 8H14"/><circle cx="8" cy="8" r="5.5" stroke-dasharray="2.5 2"/></svg>
+              Current Location
+            </button>
+            <button class="mode-btn" id="plan-addr-btn" onclick="setMode('plan','addr')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.5C5.5 1.5 3.5 3.5 3.5 6c0 3.5 4.5 8.5 4.5 8.5S12.5 9.5 12.5 6C12.5 3.5 10.5 1.5 8 1.5z"/><circle cx="8" cy="6" r="1.5"/></svg>
+              Enter Address
+            </button>
+          </div>
+          <div id="plan-gps-panel">
+            <button class="gps-btn" onclick="requestGPS('plan')" id="plan-gps-action-btn">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 2v3M10 15v3M2 10h3M15 10h3"/><circle cx="10" cy="10" r="7" stroke-dasharray="2.5 2"/></svg>
+              Allow location access
+            </button>
+            <div class="gps-status" id="plan-gps-status"></div>
+          </div>
+          <div id="plan-addr-panel" style="display:none">
+            <div class="addr-wrap">
+              <input type="text" class="address-input" id="plan-addr-input" placeholder="e.g. Koramangala 5th Block, Bengaluru" oninput="handleAddrInput(this,'plan')" autocomplete="off"/>
+            </div>
+            <p class="search-hint">Type your address or a nearby landmark</p>
+            <p class="addr-resolving" id="plan-addr-resolving">⟳ Finding location…</p>
+          </div>
+        </div>
+
+        <div class="form-div"><div class="div-rule"></div><button class="swap-btn" onclick="swapAll('plan')" title="Swap">⇅</button><div class="div-rule"></div></div>
+
+        <!-- TO -->
+        <div style="margin-top:.75rem">
+          <div class="field-label"><span class="label-dot to"></span>Your Destination</div>
+          <div class="stn-wrap">
+            <input type="text" class="stn-input" id="plan-dest" placeholder="Search destination station or area…" oninput="handleStationInput(this,'plan','dest')" autocomplete="off"/>
+            <div class="autocomplete" id="plan-dest-ac"></div>
+          </div>
+        </div>
+
+        <button class="plan-btn" onclick="planRoute()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          Calculate Route
+        </button>
+        <div class="err-msg" id="plan-error"></div>
+      </div>
+      <div id="plan-result" style="display:none" class="result-wrap"></div>
+    </div>
+    <div class="map-col">
+      <div id="main-map"></div>
+      <div class="map-legend">
+        <div class="legend-title">Metro Lines</div>
+        <div class="legend-item"><div class="legend-sw" style="background:#7B4AB8"></div>Purple Line</div>
+        <div class="legend-item"><div class="legend-sw" style="background:#2A8B47"></div>Green Line</div>
+        <div class="legend-item"><div class="legend-sw" style="background:#B07A00"></div>Yellow Line</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- METRO MAP -->
+<div id="page-metromap" class="page">
+  <div style="position:relative">
+    <div id="metro-map-full"></div>
+    <div class="map-overlay">
+      <div class="map-overlay-title">Namma Metro Network</div>
+      <div class="legend-item"><div class="legend-sw" style="background:#7B4AB8;height:3px;border-radius:2px"></div>Purple Line · 37 stations</div>
+      <div class="legend-item" style="margin-top:5px"><div class="legend-sw" style="background:#2A8B47;height:3px;border-radius:2px"></div>Green Line · 29 stations</div>
+      <div class="legend-item" style="margin-top:5px"><div class="legend-sw" style="background:#B07A00;height:3px;border-radius:2px"></div>Yellow Line · 16 stations</div>
+      <div style="margin-top:10px;font-size:.7rem;color:var(--ink4)">⬡ Interchange &nbsp;·&nbsp; ● Terminal</div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div id="page-about" class="page">
+  <div class="about-page">
+    <h1 class="about-title">About the Planner</h1>
+    <p class="about-intro">This tool helps Bengaluru commuters navigate the Namma Metro network. Enter your location by GPS or address, choose a destination, and receive a complete step-by-step guide — including which platform to stand on, which direction the train goes, where to change lines, and the exact fare.</p>
+    <div class="about-section">
+      <h2 class="about-section-title">How route finding works</h2>
+      <div class="about-card"><div class="about-card-title">Location → Nearest Station</div><div class="about-card-body">The Haversine formula computes great-circle distance from your GPS coordinates or address to every metro station. The nearest one becomes your boarding point.</div></div>
+      <div class="about-card"><div class="about-card-title">Dijkstra's Shortest Path</div><div class="about-card-body">The metro network is a weighted graph — stations are nodes, tracks are edges weighted by distance. Dijkstra's algorithm finds the minimum-cost path, adding a 0.5 km penalty per line change to prefer direct routes.</div></div>
+      <div class="about-card"><div class="about-card-title">Platform Number Assignment</div><div class="about-card-body">Each line has two terminals. By comparing your boarding station's sequence number with your alighting station's sequence number, the system determines travel direction and assigns Platform 1 (towards one terminal) or Platform 2 (towards the other).</div></div>
+    </div>
+    <div class="about-section">
+      <h2 class="about-section-title">Fare structure (BMRCL)</h2>
+      <div class="about-card"><div class="about-card-body" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;font-family:'DM Mono',monospace;font-size:.82rem">
+        <div>0–2 km<br><strong>₹10</strong></div><div>2–4 km<br><strong>₹15</strong></div><div>4–6 km<br><strong>₹20</strong></div><div>6–8 km<br><strong>₹25</strong></div>
+        <div>8–12 km<br><strong>₹30</strong></div><div>12–19 km<br><strong>₹35</strong></div><div>19–26 km<br><strong>₹40</strong></div><div>26+ km<br><strong>₹60</strong></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-veil" id="loading-veil">
+  <div class="loading-card">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loading-msg">Finding your route…</div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+//  METRO DATASET
+// ════════════════════════════════════════════════
+const METRO = {
+  fareRules:[
+    {min:0,max:2,fare:10},{min:2,max:4,fare:15},{min:4,max:6,fare:20},
+    {min:6,max:8,fare:25},{min:8,max:12,fare:30},{min:12,max:19,fare:35},
+    {min:19,max:26,fare:40},{min:26,max:999,fare:60}
+  ],
+  // seq = station order on that line (for platform direction logic)
+  // Platform 1 = towards lower seq (terminal 0)
+  // Platform 2 = towards higher seq (terminal 1)
+  lineTerminals:{
+    purple:{t0:'challaghatta',t1:'whitefield',t0Name:'Challaghatta',t1Name:'Whitefield (Kadugodi)'},
+    green: {t0:'madavara',t1:'silk_institute',t0Name:'Madavara',t1Name:'Silk Institute'},
+    yellow:{t0:'rv_road',t1:'bommasandra',t0Name:'RV Road',t1Name:'Bommasandra'}
+  },
+  stations:[
+    // PURPLE LINE
+    {id:'challaghatta',name:'Challaghatta',lines:['purple'],lat:12.9116,lng:77.4922,isInterchange:false,isTerminal:true,seq:{purple:1},connections:['kengeri']},
+    {id:'kengeri',name:'Kengeri',lines:['purple'],lat:12.9168,lng:77.4848,isInterchange:false,isTerminal:false,seq:{purple:2},connections:['challaghatta','belagondanahalli']},
+    {id:'belagondanahalli',name:'Belagondanahalli',lines:['purple'],lat:12.9201,lng:77.4939,isInterchange:false,isTerminal:false,seq:{purple:3},connections:['kengeri','jnanabharathi']},
+    {id:'jnanabharathi',name:'Jnanabharathi',lines:['purple'],lat:12.9244,lng:77.5033,isInterchange:false,isTerminal:false,seq:{purple:4},connections:['belagondanahalli','pattanagere']},
+    {id:'pattanagere',name:'Pattanagere',lines:['purple'],lat:12.9268,lng:77.5118,isInterchange:false,isTerminal:false,seq:{purple:5},connections:['jnanabharathi','kengeri_bt']},
+    {id:'kengeri_bt',name:'Kengeri Bus Terminal',lines:['purple'],lat:12.9291,lng:77.5181,isInterchange:false,isTerminal:false,seq:{purple:6},connections:['pattanagere','mysore_road_p']},
+    {id:'mysore_road_p',name:'Mysore Road',lines:['purple'],lat:12.9472,lng:77.5298,isInterchange:false,isTerminal:false,seq:{purple:7},connections:['kengeri_bt','magadi_road']},
+    {id:'magadi_road',name:'Nadaprabhu Kempegowda Station, Magadi Road',lines:['purple'],lat:12.9531,lng:77.5451,isInterchange:false,isTerminal:false,seq:{purple:8},connections:['mysore_road_p','hosahalli']},
+    {id:'hosahalli',name:'Sri Balagangadharanatha Swamiji Stn.',lines:['purple'],lat:12.9573,lng:77.5529,isInterchange:false,isTerminal:false,seq:{purple:9},connections:['magadi_road','vijayanagar']},
+    {id:'vijayanagar',name:'Vijayanagar',lines:['purple'],lat:12.9619,lng:77.5564,isInterchange:false,isTerminal:false,seq:{purple:10},connections:['hosahalli','attiguppe']},
+    {id:'attiguppe',name:'Attiguppe',lines:['purple'],lat:12.9658,lng:77.5593,isInterchange:false,isTerminal:false,seq:{purple:11},connections:['vijayanagar','deepanjali_nagar']},
+    {id:'deepanjali_nagar',name:'Deepanjali Nagar',lines:['purple'],lat:12.9688,lng:77.5634,isInterchange:false,isTerminal:false,seq:{purple:12},connections:['attiguppe','mysuru_road']},
+    {id:'mysuru_road',name:'Mysuru Road',lines:['purple'],lat:12.9716,lng:77.5662,isInterchange:false,isTerminal:false,seq:{purple:13},connections:['deepanjali_nagar','bmich']},
+    {id:'bmich',name:'BMICH World Trade Centre',lines:['purple'],lat:12.9736,lng:77.5694,isInterchange:false,isTerminal:false,seq:{purple:14},connections:['mysuru_road','ksr_bengaluru']},
+    {id:'ksr_bengaluru',name:'KSR Bengaluru City Railway Stn.',lines:['purple'],lat:12.9766,lng:77.5713,isInterchange:false,isTerminal:false,seq:{purple:15},connections:['bmich','majestic']},
+    {id:'majestic',name:'Majestic (Kempegowda)',lines:['purple','green'],lat:12.9779,lng:77.5713,isInterchange:true,isTerminal:false,seq:{purple:16,green:12},connections:['ksr_bengaluru','chickpet','sandal_soap_factory','sampige_road','city_market']},
+    {id:'chickpet',name:'Chickpet',lines:['purple'],lat:12.9718,lng:77.5759,isInterchange:false,isTerminal:false,seq:{purple:17},connections:['majestic','kr_market']},
+    {id:'kr_market',name:'K.R. Market',lines:['purple'],lat:12.9682,lng:77.5778,isInterchange:false,isTerminal:false,seq:{purple:18},connections:['chickpet','national_college_p']},
+    {id:'national_college_p',name:'National College',lines:['purple'],lat:12.9655,lng:77.5799,isInterchange:false,isTerminal:false,seq:{purple:19},connections:['kr_market','lalbagh_p']},
+    {id:'lalbagh_p',name:'Lalbagh',lines:['purple'],lat:12.9614,lng:77.5831,isInterchange:false,isTerminal:false,seq:{purple:20},connections:['national_college_p','south_end_circle']},
+    {id:'south_end_circle',name:'South End Circle',lines:['purple'],lat:12.9572,lng:77.5862,isInterchange:false,isTerminal:false,seq:{purple:21},connections:['lalbagh_p','jayanagar_p']},
+    {id:'jayanagar_p',name:'Jayanagar',lines:['purple'],lat:12.9498,lng:77.5836,isInterchange:false,isTerminal:false,seq:{purple:22},connections:['south_end_circle','rv_road']},
+    {id:'rv_road',name:'RV Road',lines:['purple','yellow'],lat:12.9398,lng:77.5847,isInterchange:true,isTerminal:false,seq:{purple:23,yellow:1},connections:['jayanagar_p','banashankari','bommanahalli']},
+    {id:'banashankari',name:'Banashankari',lines:['purple'],lat:12.9264,lng:77.5674,isInterchange:false,isTerminal:false,seq:{purple:24},connections:['rv_road','jp_nagar']},
+    {id:'jp_nagar',name:'J.P. Nagar',lines:['purple'],lat:12.9134,lng:77.5893,isInterchange:false,isTerminal:false,seq:{purple:25},connections:['banashankari','yelachenahalli']},
+    {id:'yelachenahalli',name:'Yelachenahalli',lines:['purple'],lat:12.8958,lng:77.5991,isInterchange:false,isTerminal:false,seq:{purple:26},connections:['jp_nagar','konanakunte_cross']},
+    {id:'konanakunte_cross',name:'Konanakunte Cross',lines:['purple'],lat:12.8892,lng:77.6012,isInterchange:false,isTerminal:false,seq:{purple:27},connections:['yelachenahalli','doddakallasandra']},
+    {id:'doddakallasandra',name:'Doddakallasandra',lines:['purple'],lat:12.8832,lng:77.6049,isInterchange:false,isTerminal:false,seq:{purple:28},connections:['konanakunte_cross','vajarahalli']},
+    {id:'vajarahalli',name:'Vajarahalli',lines:['purple'],lat:12.8789,lng:77.6079,isInterchange:false,isTerminal:false,seq:{purple:29},connections:['doddakallasandra','silk_institute']},
+    {id:'silk_institute',name:'Silk Institute',lines:['green'],lat:12.8742,lng:77.6081,isInterchange:false,isTerminal:true,seq:{green:29},connections:['vajarahalli']},
+    {id:'cubbon_park_p',name:'Cubbon Park',lines:['purple'],lat:12.9798,lng:77.5879,isInterchange:false,isTerminal:false,seq:{purple:16.5},connections:['majestic','mg_road']},
+    {id:'mg_road',name:'M.G Road',lines:['purple'],lat:12.9762,lng:77.6063,isInterchange:false,isTerminal:false,seq:{purple:17.5},connections:['cubbon_park_p','trinity']},
+    {id:'trinity',name:'Trinity',lines:['purple'],lat:12.9729,lng:77.6148,isInterchange:false,isTerminal:false,seq:{purple:18.5},connections:['mg_road','halasuru_p']},
+    {id:'halasuru_p',name:'Halasuru',lines:['purple'],lat:12.9744,lng:77.6253,isInterchange:false,isTerminal:false,seq:{purple:19.5},connections:['trinity','indiranagar']},
+    {id:'indiranagar',name:'Indiranagar',lines:['purple'],lat:12.9784,lng:77.6392,isInterchange:false,isTerminal:false,seq:{purple:20.5},connections:['halasuru_p','swami_vivekananda_road']},
+    {id:'swami_vivekananda_road',name:'Swami Vivekananda Road',lines:['purple'],lat:12.9799,lng:77.6487,isInterchange:false,isTerminal:false,seq:{purple:21.5},connections:['indiranagar','baiyappanahalli']},
+    {id:'baiyappanahalli',name:'Baiyappanahalli',lines:['purple'],lat:12.9899,lng:77.6573,isInterchange:false,isTerminal:false,seq:{purple:22.5},connections:['swami_vivekananda_road','kr_pura']},
+    {id:'kr_pura',name:'Krishnarajapura',lines:['purple'],lat:13.0000,lng:77.6933,isInterchange:false,isTerminal:false,seq:{purple:23.5},connections:['baiyappanahalli','benniganahalli']},
+    {id:'benniganahalli',name:'Benniganahalli',lines:['purple'],lat:13.0032,lng:77.7001,isInterchange:false,isTerminal:false,seq:{purple:24.5},connections:['kr_pura','hoodi']},
+    {id:'hoodi',name:'Hoodi',lines:['purple'],lat:13.0053,lng:77.7106,isInterchange:false,isTerminal:false,seq:{purple:25.5},connections:['benniganahalli','garudacharpalya']},
+    {id:'garudacharpalya',name:'Garudacharpalya',lines:['purple'],lat:13.0009,lng:77.7187,isInterchange:false,isTerminal:false,seq:{purple:26.5},connections:['hoodi','medahalli']},
+    {id:'medahalli',name:'Medahalli',lines:['purple'],lat:12.9968,lng:77.7243,isInterchange:false,isTerminal:false,seq:{purple:27.5},connections:['garudacharpalya','doddanakundi']},
+    {id:'doddanakundi',name:'Doddanakundi',lines:['purple'],lat:12.9928,lng:77.7293,isInterchange:false,isTerminal:false,seq:{purple:28.5},connections:['medahalli','sri_sathya_sai']},
+    {id:'sri_sathya_sai',name:'Sri Sathya Sai Hospital',lines:['purple'],lat:12.9868,lng:77.7363,isInterchange:false,isTerminal:false,seq:{purple:29.5},connections:['doddanakundi','nallurhalli']},
+    {id:'nallurhalli',name:'Nallurhalli',lines:['purple'],lat:12.9801,lng:77.7423,isInterchange:false,isTerminal:false,seq:{purple:30.5},connections:['sri_sathya_sai','kundalahalli']},
+    {id:'kundalahalli',name:'Kundalahalli',lines:['purple'],lat:12.9741,lng:77.7481,isInterchange:false,isTerminal:false,seq:{purple:31.5},connections:['nallurhalli','brookefield']},
+    {id:'brookefield',name:'Brookefield',lines:['purple'],lat:12.9691,lng:77.7539,isInterchange:false,isTerminal:false,seq:{purple:32.5},connections:['kundalahalli','whitefield']},
+    {id:'whitefield',name:'Whitefield (Kadugodi)',lines:['purple'],lat:12.9698,lng:77.7501,isInterchange:false,isTerminal:true,seq:{purple:33.5},connections:['brookefield']},
+    // GREEN LINE
+    {id:'madavara',name:'Madavara',lines:['green'],lat:13.0788,lng:77.4941,isInterchange:false,isTerminal:true,seq:{green:1},connections:['chikkabidarakallu']},
+    {id:'chikkabidarakallu',name:'Chikkabidarakallu',lines:['green'],lat:13.0696,lng:77.4989,isInterchange:false,isTerminal:false,seq:{green:2},connections:['madavara','manjunathanagar']},
+    {id:'manjunathanagar',name:'Manjunathanagar',lines:['green'],lat:13.0566,lng:77.5081,isInterchange:false,isTerminal:false,seq:{green:3},connections:['chikkabidarakallu','nagasandra']},
+    {id:'nagasandra',name:'Nagasandra',lines:['green'],lat:13.0472,lng:77.5143,isInterchange:false,isTerminal:false,seq:{green:4},connections:['manjunathanagar','dasarahalli']},
+    {id:'dasarahalli',name:'Dasarahalli',lines:['green'],lat:13.0378,lng:77.5176,isInterchange:false,isTerminal:false,seq:{green:5},connections:['nagasandra','jalahalli']},
+    {id:'jalahalli',name:'Jalahalli',lines:['green'],lat:13.0287,lng:77.5213,isInterchange:false,isTerminal:false,seq:{green:6},connections:['dasarahalli','peenya_industry']},
+    {id:'peenya_industry',name:'Peenya Industry',lines:['green'],lat:13.0248,lng:77.5214,isInterchange:false,isTerminal:false,seq:{green:7},connections:['jalahalli','peenya']},
+    {id:'peenya',name:'Peenya',lines:['green'],lat:13.0278,lng:77.5296,isInterchange:false,isTerminal:false,seq:{green:8},connections:['peenya_industry','goraguntepalya']},
+    {id:'goraguntepalya',name:'Goraguntepalya',lines:['green'],lat:13.0197,lng:77.5393,isInterchange:false,isTerminal:false,seq:{green:9},connections:['peenya','yeshwanthpur']},
+    {id:'yeshwanthpur',name:'Yeshwanthpur',lines:['green'],lat:13.0219,lng:77.5511,isInterchange:false,isTerminal:false,seq:{green:10},connections:['goraguntepalya','sandal_soap_factory']},
+    {id:'sandal_soap_factory',name:'Sandal Soap Factory',lines:['green'],lat:13.0101,lng:77.5568,isInterchange:false,isTerminal:false,seq:{green:11},connections:['yeshwanthpur','majestic']},
+    {id:'sampige_road',name:'Sampige Road',lines:['green'],lat:12.9916,lng:77.5623,isInterchange:false,isTerminal:false,seq:{green:13},connections:['majestic','mahalakshmi']},
+    {id:'mahalakshmi',name:'Mahalakshmi',lines:['green'],lat:12.9978,lng:77.5594,isInterchange:false,isTerminal:false,seq:{green:14},connections:['sampige_road','rajajinagar']},
+    {id:'rajajinagar',name:'Rajajinagar',lines:['green'],lat:13.0051,lng:77.5543,isInterchange:false,isTerminal:false,seq:{green:15},connections:['mahalakshmi','msramaiah']},
+    {id:'msramaiah',name:'M.S. Ramaiah Medical College',lines:['green'],lat:13.0248,lng:77.5653,isInterchange:false,isTerminal:false,seq:{green:16},connections:['rajajinagar','ulsoor_road']},
+    {id:'ulsoor_road',name:'Ulsoor Road',lines:['green'],lat:12.9891,lng:77.6216,isInterchange:false,isTerminal:false,seq:{green:17},connections:['msramaiah','halasuru_g']},
+    {id:'halasuru_g',name:'Halasuru (Green Line)',lines:['green'],lat:12.9876,lng:77.6107,isInterchange:false,isTerminal:false,seq:{green:18},connections:['ulsoor_road','cubbon_park_g']},
+    {id:'cubbon_park_g',name:'Cubbon Park (Green Line)',lines:['green'],lat:12.9831,lng:77.5984,isInterchange:false,isTerminal:false,seq:{green:19},connections:['halasuru_g','vidhana_soudha']},
+    {id:'vidhana_soudha',name:'Vidhana Soudha',lines:['green'],lat:12.9794,lng:77.5906,isInterchange:false,isTerminal:false,seq:{green:20},connections:['cubbon_park_g','sir_m_visvesvaraya']},
+    {id:'sir_m_visvesvaraya',name:'Sir M. Visvesvaraya',lines:['green'],lat:12.9712,lng:77.5831,isInterchange:false,isTerminal:false,seq:{green:21},connections:['vidhana_soudha','city_market']},
+    {id:'city_market',name:'City Market',lines:['green'],lat:12.9701,lng:77.5748,isInterchange:false,isTerminal:false,seq:{green:22},connections:['sir_m_visvesvaraya','majestic']},
+    {id:'chickpet_g',name:'Chickpet (Green Line)',lines:['green'],lat:12.9672,lng:77.5729,isInterchange:false,isTerminal:false,seq:{green:22.5},connections:['city_market','kr_market_g']},
+    {id:'kr_market_g',name:'Krishnarajendra Market',lines:['green'],lat:12.9623,lng:77.5726,isInterchange:false,isTerminal:false,seq:{green:23},connections:['chickpet_g','national_college_g']},
+    {id:'national_college_g',name:'National College (Green)',lines:['green'],lat:12.9566,lng:77.5712,isInterchange:false,isTerminal:false,seq:{green:24},connections:['kr_market_g','lalbagh_g']},
+    {id:'lalbagh_g',name:'Lalbagh (Green Line)',lines:['green'],lat:12.9497,lng:77.5721,isInterchange:false,isTerminal:false,seq:{green:25},connections:['national_college_g','jayanagar_g']},
+    {id:'jayanagar_g',name:'Jayanagar (Green Line)',lines:['green'],lat:12.9368,lng:77.5921,isInterchange:false,isTerminal:false,seq:{green:26},connections:['lalbagh_g','rv_road']},
+    // YELLOW LINE
+    {id:'bommanahalli',name:'Bommanahalli',lines:['yellow'],lat:12.9148,lng:77.6181,isInterchange:false,isTerminal:false,seq:{yellow:2},connections:['rv_road','silk_board']},
+    {id:'silk_board',name:'Silk Board',lines:['yellow'],lat:12.9179,lng:77.6219,isInterchange:false,isTerminal:false,seq:{yellow:3},connections:['bommanahalli','jayadeva_hospital']},
+    {id:'jayadeva_hospital',name:'Jayadeva Hospital',lines:['yellow'],lat:12.9193,lng:77.6276,isInterchange:false,isTerminal:false,seq:{yellow:4},connections:['silk_board','harlur_road']},
+    {id:'harlur_road',name:'Harlur Road',lines:['yellow'],lat:12.9177,lng:77.6391,isInterchange:false,isTerminal:false,seq:{yellow:5},connections:['jayadeva_hospital','agara_lake']},
+    {id:'agara_lake',name:'Agara Lake',lines:['yellow'],lat:12.9148,lng:77.6497,isInterchange:false,isTerminal:false,seq:{yellow:6},connections:['harlur_road','hongasandra']},
+    {id:'hongasandra',name:'Hongasandra',lines:['yellow'],lat:12.9081,lng:77.6581,isInterchange:false,isTerminal:false,seq:{yellow:7},connections:['agara_lake','haralukunte']},
+    {id:'haralukunte',name:'Haralukunte',lines:['yellow'],lat:12.8991,lng:77.6672,isInterchange:false,isTerminal:false,seq:{yellow:8},connections:['hongasandra','kudlu_gate']},
+    {id:'kudlu_gate',name:'Kudlu Gate',lines:['yellow'],lat:12.8938,lng:77.6749,isInterchange:false,isTerminal:false,seq:{yellow:9},connections:['haralukunte','singasandra']},
+    {id:'singasandra',name:'Singasandra',lines:['yellow'],lat:12.8863,lng:77.6791,isInterchange:false,isTerminal:false,seq:{yellow:10},connections:['kudlu_gate','begur_road']},
+    {id:'begur_road',name:'Begur Road',lines:['yellow'],lat:12.8791,lng:77.6843,isInterchange:false,isTerminal:false,seq:{yellow:11},connections:['singasandra','hosa_road']},
+    {id:'hosa_road',name:'Hosa Road',lines:['yellow'],lat:12.8726,lng:77.6893,isInterchange:false,isTerminal:false,seq:{yellow:12},connections:['begur_road','electronic_city']},
+    {id:'electronic_city',name:'Electronic City',lines:['yellow'],lat:12.8458,lng:77.6692,isInterchange:false,isTerminal:false,seq:{yellow:13},connections:['hosa_road','bommasandra']},
+    {id:'bommasandra',name:'Bommasandra',lines:['yellow'],lat:12.8209,lng:77.6751,isInterchange:false,isTerminal:true,seq:{yellow:14},connections:['electronic_city']}
+  ]
+};
+
+const SM={};
+METRO.stations.forEach(s=>SM[s.id]=s);
+
+// ════════════════════════════════════════════════
+//  ALGORITHMS
+// ════════════════════════════════════════════════
+function haversine(a,b,c,d){
+  const R=6371,dLat=(c-a)*Math.PI/180,dLng=(d-b)*Math.PI/180;
+  const x=Math.sin(dLat/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function buildGraph(){
+  const g={};
+  METRO.stations.forEach(s=>{g[s.id]=[];});
+  METRO.stations.forEach(s=>{
+    s.connections.forEach(cid=>{
+      const nb=SM[cid];if(!nb)return;
+      const d=haversine(s.lat,s.lng,nb.lat,nb.lng);
+      const line=s.lines.find(l=>nb.lines.includes(l))||s.lines[0];
+      g[s.id].push({to:cid,d,line});
+    });
+  });
+  return g;
+}
+
+function dijkstra(g,src){
+  const dist={},prev={},lineU={};
+  const vis=new Set(),q=[];
+  Object.keys(g).forEach(id=>{dist[id]=Infinity;prev[id]=null;lineU[id]=null;});
+  dist[src]=0;q.push({id:src,d:0});
+  while(q.length){
+    q.sort((a,b)=>a.d-b.d);
+    const{id:u}=q.shift();
+    if(vis.has(u))continue;vis.add(u);
+    for(const e of(g[u]||[])){
+      if(vis.has(e.to))continue;
+      const xfer=(lineU[u]&&lineU[u]!==e.line)?0.5:0;
+      const nd=dist[u]+e.d+xfer;
+      if(nd<dist[e.to]){dist[e.to]=nd;prev[e.to]=u;lineU[e.to]=e.line;q.push({id:e.to,d:nd});}
+    }
+  }
+  return{dist,prev,lineU};
+}
+
+function findNearest(lat,lng){
+  let best=null,bd=Infinity;
+  METRO.stations.forEach(s=>{const d=haversine(lat,lng,s.lat,s.lng);if(d<bd){bd=d;best=s;}});
+  return{station:best,distance:bd};
+}
+
+function calcFare(km){
+  for(const r of METRO.fareRules)if(km>=r.min&&km<r.max)return r.fare;
+  return 60;
+}
+
+// Platform number: based on direction of travel along a line
+function getPlatformInfo(line,fromId,toId){
+  const t=METRO.lineTerminals[line];
+  if(!t)return{platform:1,direction:'—'};
+  const fromSeq=SM[fromId]?.seq?.[line]??0;
+  const toSeq=SM[toId]?.seq?.[line]??0;
+  return toSeq>fromSeq
+    ?{platform:2,direction:t.t1Name}
+    :{platform:1,direction:t.t0Name};
+}
+
+// ════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════
+const S={
+  mode:{home:'gps',plan:'gps'},
+  srcLat:{home:null,plan:null},
+  srcLng:{home:null,plan:null},
+  srcName:{home:null,plan:null},
+  dst:{home:null,plan:null},
+  plannerMap:null,metroMap:null,routeLayers:[],
+};
+
+// ════════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════════
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('[data-page]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll(`[data-page="${page}"]`).forEach(b=>b.classList.add('active'));
+  if(page==='planner'&&!S.plannerMap)setTimeout(initPlannerMap,100);
+  if(page==='metromap'&&!S.metroMap)setTimeout(initMetroMap,100);
+}
+
+// ════════════════════════════════════════════════
+//  LOCATION MODES
+// ════════════════════════════════════════════════
+function setMode(ctx,mode){
+  S.mode[ctx]=mode;
+  ['gps','addr'].forEach(m=>{
+    document.getElementById(`${ctx}-${m}-btn`).classList.toggle('active',m===mode);
+    document.getElementById(`${ctx}-${m}-panel`).style.display=m===mode?'block':'none';
+  });
+  S.srcLat[ctx]=null;S.srcLng[ctx]=null;S.srcName[ctx]=null;
+}
+
+// ── GPS ──
+function requestGPS(ctx){
+  const btn=document.getElementById(`${ctx}-gps-action-btn`);
+  const st=document.getElementById(`${ctx}-gps-status`);
+  btn.disabled=true;
+  btn.innerHTML=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px;animation:spin .8s linear infinite"><path d="M10 3a7 7 0 1 0 7 7"/></svg> Detecting…`;
+  st.className='gps-status loading';st.innerHTML='⟳ Requesting location access…';
+  if(!navigator.geolocation){gpsErr(ctx,btn,'Geolocation is not supported in this browser.');return;}
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      S.srcLat[ctx]=pos.coords.latitude;S.srcLng[ctx]=pos.coords.longitude;
+      const nr=findNearest(pos.coords.latitude,pos.coords.longitude);
+      S.srcName[ctx]=`Your location`;
+      btn.disabled=false;
+      btn.innerHTML=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px"><circle cx="10" cy="10" r="3"/><path d="M10 2v3M10 15v3M2 10h3M15 10h3"/></svg> Location detected`;
+      st.className='gps-status success';
+      st.innerHTML=`✓ Located · Nearest station: ${nr.station.name} (${nr.distance.toFixed(1)} km away)`;
+    },
+    err=>{
+      let m='Could not get your location.';
+      if(err.code===1)m='Location access was denied. Please allow it in your browser, or use the address option.';
+      if(err.code===2)m='Position unavailable. Try the address entry option.';
+      if(err.code===3)m='Location request timed out. Please try again.';
+      gpsErr(ctx,btn,m);
+    },
+    {enableHighAccuracy:true,timeout:12000,maximumAge:60000}
+  );
+}
+
+function gpsErr(ctx,btn,msg){
+  btn.disabled=false;
+  btn.innerHTML=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px"><circle cx="10" cy="10" r="3"/><path d="M10 2v3M10 15v3M2 10h3M15 10h3"/></svg> Allow location access`;
+  const st=document.getElementById(`${ctx}-gps-status`);
+  st.className='gps-status error';st.innerHTML=`⚠ ${msg}`;
+}
+
+// ── ADDRESS GEOCODING ──
+let gTimer=null;
+function handleAddrInput(el,ctx){
+  clearTimeout(gTimer);
+  S.srcLat[ctx]=null;S.srcLng[ctx]=null;
+  const rv=document.getElementById(`${ctx}-addr-resolving`);
+  if(el.value.length<4){if(rv)rv.style.display='none';return;}
+  if(rv)rv.style.display='block';
+  gTimer=setTimeout(()=>geocode(el.value,ctx,el,rv),700);
+}
+
+async function geocode(q,ctx,el,rv){
+  const full=q.toLowerCase().includes('bengaluru')||q.toLowerCase().includes('bangalore')?q:q+', Bengaluru, Karnataka, India';
+  try{
+    const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(full)}&format=json&limit=1&countrycodes=in`;
+    const res=await fetch(url,{headers:{'Accept-Language':'en'}});
+    const data=await res.json();
+    if(data&&data.length){
+      S.srcLat[ctx]=parseFloat(data[0].lat);
+      S.srcLng[ctx]=parseFloat(data[0].lon);
+      S.srcName[ctx]=q;
+      el.style.borderColor='var(--green)';
+      if(rv)rv.style.display='none';
+      setTimeout(()=>{el.style.borderColor='';},2000);
+    }else{
+      if(rv){rv.style.color='var(--red)';rv.innerHTML='⚠ Address not found. Try adding more detail.';}
+    }
+  }catch(e){if(rv)rv.style.display='none';}
+}
+
+// ── STATION AUTOCOMPLETE ──
+function handleStationInput(el,ctx,field){
+  const q=el.value.toLowerCase().trim();
+  const ac=document.getElementById(`${ctx}-${field}-ac`);
+  if(!q){ac.style.display='none';return;}
+  const res=METRO.stations.filter(s=>s.name.toLowerCase().includes(q)).slice(0,8);
+  if(!res.length){ac.style.display='none';return;}
+  ac.innerHTML=res.map(s=>{
+    const chips=s.lines.map(l=>`<span class="lc ${l}">${l[0].toUpperCase()}L</span>`).join('');
+    const ic=s.isInterchange?`<span class="ic-tag">Interchange</span>`:'';
+    return`<div class="ac-item" onclick="selectStn('${s.id}','${ctx}','${field}')"><span class="ac-name">${s.name}</span><div class="ac-meta">${ic}${chips}</div></div>`;
+  }).join('');
+  ac.style.display='block';
+}
+
+function selectStn(id,ctx,field){
+  const s=SM[id];
+  document.getElementById(`${ctx}-${field==='dest'?'dest':'src'}`).value=s.name;
+  document.getElementById(`${ctx}-${field}-ac`).style.display='none';
+  if(field==='dest')S.dst[ctx]=s;
+}
+
+document.addEventListener('click',e=>{
+  if(!e.target.classList.contains('stn-input')&&!e.target.classList.contains('ac-item'))
+    document.querySelectorAll('.autocomplete').forEach(a=>a.style.display='none');
+});
+
+// ── SWAP ──
+function swapAll(ctx){
+  const dst=S.dst[ctx];
+  if(!dst)return;
+  S.srcLat[ctx]=dst.lat;S.srcLng[ctx]=dst.lng;S.srcName[ctx]=dst.name;
+  setMode(ctx,'addr');
+  const ai=document.getElementById(`${ctx}-addr-input`);
+  if(ai)ai.value=dst.name;
+  S.dst[ctx]=null;
+  document.getElementById(`${ctx}-dest`).value='';
+  const st=document.getElementById(`${ctx}-gps-status`);
+  if(st){st.className='gps-status success';st.innerHTML=`✓ Starting from: ${dst.name}`;}
+}
+
+// ════════════════════════════════════════════════
+//  ROUTE PLANNING
+// ════════════════════════════════════════════════
+function planFromHome(){
+  if(!S.srcLat.home||!S.srcLng.home){
+    showErr('home',S.mode.home==='gps'?'Please detect your location first, or switch to address entry.':'Please enter a valid Bengaluru address and wait for it to resolve.');return;
+  }
+  if(!S.dst.home){showErr('home','Please select a destination station.');return;}
+  S.srcLat.plan=S.srcLat.home;S.srcLng.plan=S.srcLng.home;S.srcName.plan=S.srcName.home;S.dst.plan=S.dst.home;
+  document.getElementById('plan-dest').value=S.dst.home.name;
+  showPage('planner');setTimeout(planRoute,350);
+}
+
+function planRoute(){
+  clearErr('plan');
+  document.getElementById('plan-result').style.display='none';
+  if(!S.srcLat.plan||!S.srcLng.plan){
+    showErr('plan',S.mode.plan==='gps'?'Please detect your current location first.':'Please enter your address and wait a moment for it to resolve.');return;
+  }
+  if(!S.dst.plan){showErr('plan','Please select a destination station.');return;}
+  showLoad('Finding the fastest route…');
+  setTimeout(()=>{
+    try{
+      const{station:srcStn,distance:walkDist}=findNearest(S.srcLat.plan,S.srcLng.plan);
+      const result=runJourney(srcStn,S.dst.plan);
+      hideLoad();
+      renderResult(result,srcStn,S.dst.plan,walkDist);
+      if(S.plannerMap)drawRoute(result.path,S.srcLat.plan,S.srcLng.plan,S.dst.plan.lat,S.dst.plan.lng);
+    }catch(e){hideLoad();showErr('plan',e.message);}
+  },500);
+}
+
+function runJourney(src,dst){
+  if(src.id===dst.id)throw new Error('Source and destination are the same station.');
+  const g=buildGraph();
+  const{dist,prev,lineU}=dijkstra(g,src.id);
+  if(dist[dst.id]===Infinity)throw new Error('No route found. The stations may not be connected in the current network.');
+  const path=[];let cur=dst.id;
+  while(cur){path.unshift({...SM[cur],line:lineU[cur]});cur=prev[cur];}
+  if(!path.length||path[0].id!==src.id)throw new Error('Could not reconstruct path.');
+  let km=0;
+  for(let i=1;i<path.length;i++)km+=haversine(path[i-1].lat,path[i-1].lng,path[i].lat,path[i].lng);
+  const ic=countIC(path);
+  return{path,km:parseFloat(km.toFixed(2)),fare:calcFare(km),travelMin:Math.round((km/35)*60+ic*5)};
+}
+
+function countIC(path){let n=0;for(let i=1;i<path.length;i++)if(path[i].line!==path[i-1].line)n++;return n;}
+
+function showErr(ctx,msg){const e=document.getElementById(`${ctx}-error`);if(e){e.textContent=msg;e.style.display='block';}}
+function clearErr(ctx){const e=document.getElementById(`${ctx}-error`);if(e){e.style.display='none';e.textContent='';}}
+function showLoad(msg){document.getElementById('loading-msg').textContent=msg||'Loading…';document.getElementById('loading-veil').classList.add('show');}
+function hideLoad(){document.getElementById('loading-veil').classList.remove('show');}
+
+// ════════════════════════════════════════════════
+//  RENDER RESULTS
+// ════════════════════════════════════════════════
+function renderResult(result,srcStn,dstStn,walkKm){
+  const{path,km,fare,travelMin}=result;
+  const ic=countIC(path);
+
+  const summary=`
+    <div class="summary-card">
+      <div class="summary-route">
+        <strong>${srcStn.name}</strong><span class="r-arrow">→</span><strong>${dstStn.name}</strong>
+      </div>
+      <div class="summary-stats">
+        <div class="stat"><span class="stat-val">${travelMin}</span><span class="stat-lbl">min</span></div>
+        <div class="stat"><span class="stat-val">${path.length-1}</span><span class="stat-lbl">stops</span></div>
+        <div class="stat"><span class="stat-val">${km.toFixed(1)}</span><span class="stat-lbl">km</span></div>
+        <div class="stat"><span class="stat-val">${ic}</span><span class="stat-lbl">change${ic!==1?'s':''}</span></div>
+      </div>
+      <div class="fare-row"><span class="fare-lbl">Estimated fare</span><span class="fare-amt">₹${fare}</span></div>
+    </div>`;
+
+  const steps=buildSteps(path,walkKm);
+  const stepsHtml=steps.map((step,i)=>{
+    const isLast=i===steps.length-1;
+    const icons={walk:'↗',board:'▶',travel:'·',transfer:'⇄',alight:'◎',arrive:'✓'};
+
+    let platHtml='';
+    if(step.platform){
+      platHtml=`<div class="platform-badge ${step.line}">
+        <span class="plat-label">Platform</span>
+        <span class="plat-num">${step.platform}</span>
+        <div class="plat-div"></div>
+        <span class="plat-dir">towards ${step.direction}</span>
+      </div>`;
+    }
+    let xferHtml='';
+    if(step.xferNote){
+      xferHtml=`<div class="transfer-box">
+        <div class="transfer-title">Change of train required</div>
+        <div class="transfer-inst">${step.xferNote}</div>
+      </div>`;
+    }
+    return`<div class="step-row">
+      <div class="step-line-col">
+        <div class="step-dot ${step.type}">${icons[step.type]||'·'}</div>
+        ${!isLast?`<div class="step-track ${step.trackLine||'solid'}"></div>`:''}
+      </div>
+      <div class="step-body">
+        <div class="step-tag">${step.tag}</div>
+        <div class="step-main">${step.main}</div>
+        ${step.detail?`<div class="step-detail">${step.detail}</div>`:''}
+        ${platHtml}${xferHtml}
+      </div>
+    </div>`;
+  }).join('');
+
+  const el=document.getElementById('plan-result');
+  el.innerHTML=`${summary}<div class="steps-section"><p class="steps-heading">Step-by-step directions</p><div>${stepsHtml}</div></div>`;
+  el.style.display='block';
+}
+
+function buildSteps(path,walkKm){
+  const steps=[];
+  const LN={purple:'Purple Line',green:'Green Line',yellow:'Yellow Line'};
+
+  // Segment grouping
+  const segs=[];
+  let sl=path[0].line||path[1]?.line,ss=0;
+  for(let i=1;i<=path.length;i++){
+    if(i===path.length||(path[i]&&path[i].line!==sl)){
+      segs.push({line:sl,from:ss,to:i-1});
+      if(i<path.length&&path[i]){sl=path[i].line;ss=i-1;}
+    }
+  }
+
+  // Walk to first station
+  const wm=Math.max(1,Math.round((walkKm/5)*60));
+  steps.push({type:'walk',tag:'Walk',main:`Walk to ${path[0].name}`,detail:`About ${walkKm.toFixed(1)} km · approx. ${wm} min on foot`,trackLine:'dashed'});
+
+  segs.forEach((seg,si)=>{
+    const from=path[seg.from],to=path[seg.to];
+    const count=seg.to-seg.from;
+    const ln=LN[seg.line]||seg.line;
+    const pi=getPlatformInfo(seg.line,from.id,to.id);
+
+    // Board
+    steps.push({type:'board',tag:'Board train',main:`${ln} from ${from.name}`,detail:`${count} stop${count!==1?'s':''} to ${to.name}`,line:seg.line,platform:pi.platform,direction:pi.direction,trackLine:seg.line});
+
+    // Travel (only show if >1 stop for clarity)
+    if(count>1){
+      steps.push({type:'travel',tag:'On board',main:`Travelling towards ${pi.direction}`,detail:`${count-1} intermediate stop${count-1!==1?'s':''}`,trackLine:seg.line});
+    }
+
+    // Transfer or alight
+    if(si<segs.length-1){
+      const next=segs[si+1];
+      const npi=getPlatformInfo(next.line,path[next.from].id,path[next.to].id);
+      steps.push({type:'transfer',tag:'Change trains',main:`Alight at ${to.name}`,detail:`Transfer to ${LN[next.line]}`,xferNote:`Exit the ${ln}. Follow interchange signs to <strong>Platform ${npi.platform}</strong> of the ${LN[next.line]} (towards ${npi.direction}). Allow 5–7 minutes.`,trackLine:next.line});
+    }
+  });
+
+  const last=path[path.length-1];
+  steps.push({type:'alight',tag:'Alight',main:`Get off at ${last.name}`,detail:'This is your destination station',trackLine:'solid'});
+  steps.push({type:'arrive',tag:'Arrive',main:'Walk to your destination',detail:'Your destination is a short walk from the station exit'});
+  return steps;
+}
+
+// ════════════════════════════════════════════════
+//  MAPS
+// ════════════════════════════════════════════════
+const LC={purple:'#7B4AB8',green:'#2A8B47',yellow:'#B07A00'};
+
+function tiles(map){
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:19}).addTo(map);
+}
+
+function drawLines(map){
+  const drawn=new Set();
+  METRO.stations.forEach(s=>{
+    s.connections.forEach(cid=>{
+      const key=[s.id,cid].sort().join('|');
+      if(drawn.has(key))return;drawn.add(key);
+      const nb=SM[cid];if(!nb)return;
+      const line=s.lines.find(l=>nb.lines.includes(l))||s.lines[0];
+      L.polyline([[s.lat,s.lng],[nb.lat,nb.lng]],{color:LC[line]||'#888',weight:3.5,opacity:.8}).addTo(map);
+    });
+  });
+}
+
+function drawStations(map){
+  METRO.stations.forEach(s=>{
+    const c=LC[s.lines[0]]||'#888';
+    const sz=s.isInterchange?12:s.isTerminal?10:7;
+    const icon=L.divIcon({html:`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${c};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.18)"></div>`,className:'',iconAnchor:[sz/2,sz/2]});
+    const m=L.marker([s.lat,s.lng],{icon}).addTo(map);
+    const chips=s.lines.map(l=>`<span style="background:${LC[l]};color:white;padding:1px 5px;border-radius:3px;font-size:10px">${l[0].toUpperCase()}L</span>`).join(' ');
+    m.bindPopup(`<b style="font-size:12px">${s.name}</b><br><div style="margin:4px 0">${chips}</div>${s.isInterchange?'<span style="font-size:10px;color:#888">⇄ Interchange</span>':''}`);
+  });
+}
+
+function initPlannerMap(){
+  const m=L.map('main-map',{center:[12.9716,77.5946],zoom:12});
+  tiles(m);S.plannerMap=m;drawLines(m);drawStations(m);
+}
+
+function drawRoute(path,sLat,sLng,dLat,dLng){
+  const m=S.plannerMap;
+  S.routeLayers.forEach(l=>m.removeLayer(l));S.routeLayers=[];
+  for(let i=1;i<path.length;i++){
+    const a=path[i-1],b=path[i];
+    S.routeLayers.push(L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{color:LC[b.line]||'#333',weight:6,opacity:1}).addTo(m));
+  }
+  const mkr=(lat,lng,col,label)=>{
+    const ic=L.divIcon({html:`<div style="width:14px;height:14px;border-radius:50%;background:${col};border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.25)"></div>`,className:'',iconAnchor:[7,7]});
+    return L.marker([lat,lng],{icon:ic}).addTo(m).bindPopup(label);
+  };
+  S.routeLayers.push(mkr(sLat,sLng,'#2A8B47','<b>Your location</b>'));
+  S.routeLayers.push(mkr(dLat,dLng,'#5B2D8E','<b>Destination</b>'));
+  m.fitBounds(L.latLngBounds([[sLat,sLng],...path.map(s=>[s.lat,s.lng]),[dLat,dLng]]),{padding:[60,60]});
+}
+
+function initMetroMap(){
+  const m=L.map('metro-map-full',{center:[12.9716,77.5946],zoom:11});
+  tiles(m);S.metroMap=m;drawLines(m);drawStations(m);
+}
+</script>
+</body>
+</html>
