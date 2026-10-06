@@ -764,43 +764,77 @@ function handleAddrInput(el,ctx){
 
 const escHtml=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+// Bengaluru-area results first; bias alone still lets same-named places elsewhere in India rank high.
+const isLocal=t=>/bengaluru|bangalore|karnataka/i.test(t);
+const localFirst=list=>[...list.filter(x=>isLocal(x.full)),...list.filter(x=>!isLocal(x.full))];
+
 async function placesSuggest(q,ctx,ac){
   if(!placesToken)placesToken=new placesLib.AutocompleteSessionToken();
+  const el=document.getElementById(`${ctx}-addr-input`);
   try{
     const {suggestions}=await placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions({
       input:q,sessionToken:placesToken,
       locationBias:BLR_BOUNDS,includedRegionCodes:['in'], // prefer Bengaluru, allow outskirts
     });
-    const preds=suggestions.map(s=>s.placePrediction).filter(Boolean).slice(0,6);
-    placesSugg[ctx]=preds;
-    if(!preds.length){ac.style.display='none';return;}
-    ac.innerHTML=preds.map((p,i)=>
-      `<div class="ac-item" onclick="selectPlace('${ctx}',${i})"><span class="ac-name">${escHtml(p.mainText?.text||p.text.text)}<br><small style="color:var(--ink4)">${escHtml(p.secondaryText?.text||'')}</small></span></div>`
-    ).join('');
-    ac.style.display='block';
+    if(el.value!==q)return; // stale response
+    let items=suggestions.map(s=>s.placePrediction).filter(Boolean).map(p=>({
+      main:p.mainText?.text||p.text.text,sub:p.secondaryText?.text||'',full:p.text.text,pred:p,
+    }));
+    // Autocomplete gives up on long, full pasted addresses ("Flat, No. 9, 6th cross, …").
+    // Fall back to Text Search like Google Maps does — only once typing pauses, as it costs more.
+    if(!items.length&&q.trim().length>=8){
+      await new Promise(r=>setTimeout(r,450));
+      if(el.value!==q)return;
+      items=await placesTextSearch(q);
+      if(el.value!==q)return;
+    }
+    items=localFirst(items).slice(0,5);
+    placesSugg[ctx]=items;
+    renderPlaces(ctx,ac,items);
   }catch(e){
     // Bad/restricted key or quota: drop back to Nominatim for the rest of the session.
     console.warn('Places autocomplete failed, falling back to Nominatim:',e);
     ac.style.display='none';placesLib=null;
-    const el=document.getElementById(`${ctx}-addr-input`);
     handleAddrInput(el,ctx);
   }
 }
 
+async function placesTextSearch(q){
+  const {places}=await placesLib.Place.searchByText({
+    textQuery:q,fields:['displayName','formattedAddress','location'],
+    locationBias:BLR_BOUNDS,region:'in',maxResultCount:5,
+  });
+  return places.map(p=>({main:p.displayName||p.formattedAddress,sub:p.formattedAddress||'',full:[p.displayName,p.formattedAddress].filter(Boolean).join(', '),place:p}));
+}
+
+function renderPlaces(ctx,ac,items){
+  if(!items.length){
+    ac.innerHTML=`<div class="ac-item" style="cursor:default"><span class="ac-name" style="color:var(--ink4)">No matches — try the building or area name</span></div>`;
+    ac.style.display='block';return;
+  }
+  ac.innerHTML=items.map((p,i)=>
+    `<div class="ac-item" onclick="selectPlace('${ctx}',${i})"><span class="ac-name">${escHtml(p.main)}<br><small style="color:var(--ink4)">${escHtml(p.sub)}</small></span></div>`
+  ).join('');
+  ac.style.display='block';
+}
+
 async function selectPlace(ctx,i){
-  const pred=placesSugg[ctx][i];if(!pred)return;
+  const item=placesSugg[ctx][i];if(!item)return;
   const el=document.getElementById(`${ctx}-addr-input`);
   const ac=document.getElementById(`${ctx}-addr-ac`);
   const rv=document.getElementById(`${ctx}-addr-resolving`);
   ac.style.display='none';
-  el.value=pred.text.text;
+  el.value=item.full;
   try{
-    const place=pred.toPlace();
-    await place.fetchFields({fields:['location','displayName']});
-    placesToken=null; // session ends on details fetch
+    let place=item.place;
+    if(!place){
+      place=item.pred.toPlace();
+      await place.fetchFields({fields:['location','displayName']});
+      placesToken=null; // session ends on details fetch
+    }
     S.srcLat[ctx]=place.location.lat();
     S.srcLng[ctx]=place.location.lng();
-    S.srcName[ctx]=pred.mainText?.text||place.displayName||el.value;
+    S.srcName[ctx]=item.main||el.value;
     el.style.borderColor='var(--green)';
     setTimeout(()=>{el.style.borderColor='';},2000);
   }catch(e){
