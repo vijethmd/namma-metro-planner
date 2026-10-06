@@ -349,6 +349,84 @@ header{background:rgba(23,20,15,.96);-webkit-backdrop-filter:saturate(1.4) blur(
   .net-line{stroke-dashoffset:0;}
   .net-stn,.net-ic{opacity:1;}
 }
+
+/* ── QUICK DESTINATIONS (planner empty state) ── */
+.quick-dest{margin:1.25rem 1.25rem 1.5rem;animation:fadeUp .4s var(--ease-out) both;animation-delay:80ms;}
+.quick-dest.hidden{display:none;}
+.quick-title{font-size:.64rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink4);margin:0 2px 10px;}
+.quick-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.quick-chips button{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 13px 0 11px;border:none;border-radius:999px;background:var(--surface);box-shadow:var(--shadow-sm),0 0 0 1px var(--rule);font-size:.8rem;font-weight:500;color:var(--ink2);cursor:pointer;transition:transform .16s var(--ease-out),box-shadow .2s ease;}
+.quick-chips button:active{transform:scale(.96);}
+@media (hover:hover) and (pointer:fine){.quick-chips button:hover{box-shadow:var(--shadow),0 0 0 1px var(--rule-strong);color:var(--ink);}}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+.dot+.dot{margin-left:-8px;box-shadow:0 0 0 1.5px var(--surface);}
+.dot.purple{background:var(--purple-l);}.dot.green{background:var(--green-l);}.dot.yellow{background:var(--yellow-l);}
+.quick-tips{list-style:none;margin-top:1.5rem;padding:1rem 1.1rem;border-radius:14px;background:var(--cream2);display:grid;gap:9px;}
+.quick-tips li{font-size:.8rem;color:var(--ink3);line-height:1.45;padding-left:18px;position:relative;}
+.quick-tips li::before{content:'';position:absolute;left:2px;top:.5em;width:6px;height:6px;border-radius:50%;background:var(--ink4);opacity:.6;}
+.quick-tips b{color:var(--ink2);font-weight:600;}
+
+/* ── SUMMARY v2 ── */
+.summary-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;}
+.summary-eta{font-size:2.1rem;font-weight:500;letter-spacing:-.035em;line-height:1;color:#fff;}
+.summary-eta span{font-size:2.6rem;}
+.summary-arrive{font-size:.78rem;color:rgba(246,243,238,.55);margin-top:6px;}
+.fare-chip{display:flex;flex-direction:column;align-items:flex-end;font-size:1.35rem;font-weight:600;color:var(--gold);letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1;padding:8px 12px;border-radius:12px;background:rgba(233,196,106,.08);box-shadow:inset 0 0 0 1px rgba(233,196,106,.18);}
+.fare-chip span{font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(233,196,106,.7);margin-bottom:2px;}
+.journey-bar{display:flex;gap:3px;height:6px;margin-bottom:14px;}
+.journey-bar i{border-radius:6px;min-width:10px;transform-origin:left;animation:barIn .7s var(--ease-out) both;}
+.journey-bar i:nth-child(2){animation-delay:80ms}.journey-bar i:nth-child(3){animation-delay:160ms}.journey-bar i:nth-child(4){animation-delay:240ms}
+@keyframes barIn{from{transform:scaleX(.2);opacity:0}to{transform:none;opacity:1}}
+.jb-walk{background:repeating-linear-gradient(90deg,rgba(246,243,238,.45) 0 3px,transparent 3px 6px);}
+.jb-purple{background:var(--purple-l);}.jb-green{background:var(--green-l);}.jb-yellow{background:var(--yellow-l);}
+.summary-card .summary-route{font-size:1.05rem;margin-bottom:8px;}
+.summary-pills{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.summary-pills .lc{font-size:.62rem;padding:4px 9px;}
+.summary-pills .lc.purple{background:rgba(129,80,196,.22);color:#D4BDF2;}
+.summary-pills .lc.green{background:rgba(35,147,76,.22);color:#9DE0B4;}
+.summary-pills .lc.yellow{background:rgba(192,138,14,.22);color:#F2D58C;}
+.pill-sep{color:rgba(246,243,238,.3);font-size:.8rem;}
+
+/* ── STEPS v2 ── */
+.step-dot svg{width:13px;height:13px;}
+.step-dot.board.purple{border-color:var(--purple-l);color:var(--purple);}
+.step-dot.board.green{border-color:var(--green-l);color:var(--green);}
+.step-dot.board.yellow{border-color:var(--yellow-l);color:var(--yellow);}
+.step-dot.arrive{background:var(--ink);color:#fff;}
+.stops-list{margin-top:10px;}
+.stops-list summary{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:500;color:var(--ink3);cursor:pointer;list-style:none;padding:5px 10px 5px 8px;border-radius:8px;background:var(--cream2);transition:background-color .15s ease,color .15s ease;user-select:none;}
+.stops-list summary::-webkit-details-marker{display:none;}
+.stops-list summary::before{content:'';width:0;height:0;border-left:4px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;transition:transform .2s var(--ease-out);}
+.stops-list[open] summary::before{transform:rotate(90deg);}
+@media (hover:hover) and (pointer:fine){.stops-list summary:hover{color:var(--ink);background:var(--cream3);}}
+.stops-list ol{list-style:none;margin:8px 0 2px 4px;padding-left:14px;position:relative;animation:fadeUp .25s var(--ease-out);}
+.stops-list ol::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:2px;background:var(--line-c,var(--rule));}
+.stops-list.purple{--line-c:var(--purple-l);}.stops-list.green{--line-c:var(--green-l);}.stops-list.yellow{--line-c:var(--yellow-l);}
+.stops-list li{font-size:.8rem;color:var(--ink3);padding:3px 0;position:relative;}
+.stops-list li::before{content:'';position:absolute;left:-17px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--surface);box-shadow:inset 0 0 0 2px var(--line-c);}
+
+/* ── MAP v2 ── */
+.stn-tip{background:rgba(23,20,15,.88)!important;color:#fff!important;border:none!important;border-radius:7px!important;padding:3px 8px!important;font:500 11px/1.4 'DM Sans',sans-serif!important;box-shadow:0 4px 12px rgba(0,0,0,.18)!important;white-space:nowrap;}
+.stn-tip::before{display:none!important;}
+.leaflet-tooltip-pane .stn-tip{pointer-events:none;}
+.pop-name{font-weight:600;font-size:13px;color:var(--ink);margin-bottom:6px;}
+.pop-chips{display:flex;gap:4px;flex-wrap:wrap;}
+.pop-ic{margin-top:6px;font-size:11px;color:var(--ink4);}
+.pin-start{width:22px;height:22px;border-radius:50%;background:var(--green-l);box-shadow:0 0 0 4px #fff,0 2px 10px rgba(0,0,0,.3);position:relative;}
+.pin-start::after{content:'';position:absolute;inset:-8px;border-radius:50%;background:rgba(35,147,76,.25);animation:pulse 2.4s var(--ease-out) infinite;z-index:-1;}
+
+@media(max-width:900px){
+  .planner-layout.has-route{display:flex;flex-direction:column;}
+  .planner-layout.has-route .map-col{display:block;order:-1;height:42vh;min-height:260px;}
+  .planner-layout.has-route #main-map{height:100%;}
+  .planner-layout.has-route .map-legend{display:none;}
+  /* With a route, phones see map → summary → steps, and the form after for edits. */
+  .planner-layout.has-route .sidebar-header{display:none;}
+  .planner-layout.has-route .result-wrap{order:-1;}
+  .planner-layout.has-route .form-body{margin-bottom:1.25rem;}
+  .quick-dest{margin:1rem;}
+}
+@media (prefers-reduced-motion: reduce){.journey-bar i{animation:none;}}
 </style>
 </head>
 <body>
@@ -502,7 +580,7 @@ header{background:rgba(23,20,15,.96);-webkit-backdrop-filter:saturate(1.4) blur(
         <div style="margin-top:.75rem">
           <div class="field-label"><span class="label-dot to"></span>Your Destination</div>
           <div class="stn-wrap">
-            <input type="text" class="stn-input" id="plan-dest" placeholder="Search destination station or area…" oninput="handleStationInput(this,'plan','dest')" autocomplete="off"/>
+            <input type="text" class="stn-input" id="plan-dest" placeholder="Search destination station…" oninput="handleStationInput(this,'plan','dest')" autocomplete="off"/>
             <div class="autocomplete" id="plan-dest-ac"></div>
           </div>
         </div>
@@ -512,6 +590,24 @@ header{background:rgba(23,20,15,.96);-webkit-backdrop-filter:saturate(1.4) blur(
           Calculate Route
         </button>
         <div class="err-msg" id="plan-error"></div>
+      </div>
+      <div class="quick-dest" id="plan-quick">
+        <p class="quick-title">Popular destinations</p>
+        <div class="quick-chips">
+          <button onclick="quickDest('majestic')"><i class="dot green"></i><i class="dot purple"></i>Majestic</button>
+          <button onclick="quickDest('mg_road')"><i class="dot purple"></i>MG Road</button>
+          <button onclick="quickDest('whitefield')"><i class="dot purple"></i>Whitefield</button>
+          <button onclick="quickDest('electronic_city')"><i class="dot yellow"></i>Electronic City</button>
+          <button onclick="quickDest('yeshwanthpur')"><i class="dot green"></i>Yeshwanthpur</button>
+          <button onclick="quickDest('silk_board')"><i class="dot yellow"></i>Silk Board</button>
+          <button onclick="quickDest('indiranagar')"><i class="dot purple"></i>Indiranagar</button>
+          <button onclick="quickDest('jayanagar')"><i class="dot green"></i>Jayanagar</button>
+        </div>
+        <ul class="quick-tips">
+          <li><b>Platform</b> and direction for every train you board</li>
+          <li><b>Interchange</b> guidance at Majestic and RV Road</li>
+          <li><b>Fare</b> from the current BMRCL slabs</li>
+        </ul>
       </div>
       <div id="plan-result" style="display:none" class="result-wrap"></div>
     </div>
@@ -1034,6 +1130,8 @@ function planRoute(){
       const result=runJourney(srcStn,S.dst.plan);
       hideLoad();
       renderResult(result,srcStn,S.dst.plan,walkDist);
+      document.querySelector('.planner-layout').classList.add('has-route');
+      if(innerWidth<=900)scrollTo({top:0,behavior:'smooth'});
       if(S.plannerMap)drawRoute(result.path,S.srcLat.plan,S.srcLng.plan,S.dst.plan.lat,S.dst.plan.lng);
     }catch(e){hideLoad();showErr('plan',e.message);}
   },500);
@@ -1064,107 +1162,120 @@ function hideLoad(){document.getElementById('loading-veil').classList.remove('sh
 // ════════════════════════════════════════════════
 //  RENDER RESULTS
 // ════════════════════════════════════════════════
+const ICON={
+  walk:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="2.8" r="1.3"/><path d="m6 14 1.6-4.2L9.8 12v2.5M7.6 9.8 8.4 6l-2.2 1L5 9M8.4 6l1.6 2 2 .6"/></svg>',
+  board:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="2" width="9" height="9.5" rx="2.2"/><path d="M3.5 7h9M6 14l-1-2.5M10 14l1-2.5"/><circle cx="6" cy="9.2" r=".4" fill="currentColor"/><circle cx="10" cy="9.2" r=".4" fill="currentColor"/></svg>',
+  transfer:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h9.5L10 3M13 10.5H3.5L6 13"/></svg>',
+  arrive:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 8.5 3 3 6-7"/></svg>',
+};
+const LN={purple:'Purple Line',green:'Green Line',yellow:'Yellow Line'};
+const fmtTime=d=>d.toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});
+
 function renderResult(result,srcStn,dstStn,walkKm){
   const{path,km,fare,travelMin}=result;
   const ic=countIC(path);
+  const walkMin=Math.max(1,Math.round((walkKm/5)*60));
+  const totalMin=walkMin+travelMin;
+  const arrive=new Date(Date.now()+totalMin*60000);
+  const steps=buildSteps(path,walkKm);
+
+  // Journey bar: one segment per leg, width proportional to time spent on it.
+  const legs=[{line:'walk',min:walkMin}];
+  segmentsOf(path).forEach(sg=>legs.push({line:sg.line,min:Math.max(1,sg.to-sg.from)*2}));
+  const legTotal=legs.reduce((t,l)=>t+l.min,0);
+  const bar=legs.map(l=>`<i class="jb-${l.line}" style="flex:${l.min/legTotal}"></i>`).join('');
+  const pills=segmentsOf(path).map(sg=>`<span class="lc ${sg.line}">${LN[sg.line]}</span>`).join('<span class="pill-sep">›</span>');
 
   const summary=`
     <div class="summary-card">
-      <div class="summary-route">
-        <strong>${srcStn.name}</strong><span class="r-arrow">→</span><strong>${dstStn.name}</strong>
+      <div class="summary-top">
+        <div>
+          <div class="summary-eta"><span class="tnum">${totalMin}</span> min</div>
+          <div class="summary-arrive">Leave now · arrive around ${fmtTime(arrive)}</div>
+        </div>
+        <div class="fare-chip"><span>Fare</span>₹${fare}</div>
       </div>
+      <div class="journey-bar">${bar}</div>
+      <div class="summary-route"><strong>${escHtml(srcStn.name)}</strong><span class="r-arrow">→</span><strong>${escHtml(dstStn.name)}</strong></div>
+      <div class="summary-pills">${pills}</div>
       <div class="summary-stats">
-        <div class="stat"><span class="stat-val">${travelMin}</span><span class="stat-lbl">min</span></div>
         <div class="stat"><span class="stat-val">${path.length-1}</span><span class="stat-lbl">stops</span></div>
-        <div class="stat"><span class="stat-val">${km.toFixed(1)}</span><span class="stat-lbl">km</span></div>
+        <div class="stat"><span class="stat-val">${km.toFixed(1)}</span><span class="stat-lbl">km by metro</span></div>
         <div class="stat"><span class="stat-val">${ic}</span><span class="stat-lbl">change${ic!==1?'s':''}</span></div>
+        <div class="stat"><span class="stat-val">${walkMin}</span><span class="stat-lbl">min walk</span></div>
       </div>
-      <div class="fare-row"><span class="fare-lbl">Estimated fare</span><span class="fare-amt">₹${fare}</span></div>
     </div>`;
 
-  const steps=buildSteps(path,walkKm);
   const stepsHtml=steps.map((step,i)=>{
     const isLast=i===steps.length-1;
-    const icons={walk:'↗',board:'▶',travel:'·',transfer:'⇄',alight:'◎',arrive:'✓'};
-
-    let platHtml='';
-    if(step.platform){
-      platHtml=`<div class="platform-badge ${step.line}">
-        <span class="plat-label">Platform</span>
+    const plat=step.platform?`<div class="platform-badge ${step.line}">
         <span class="plat-num">${step.platform}</span>
+        <span class="plat-label">Platform</span>
         <div class="plat-div"></div>
-        <span class="plat-dir">towards ${step.direction}</span>
-      </div>`;
-    }
-    let xferHtml='';
-    if(step.xferNote){
-      xferHtml=`<div class="transfer-box">
-        <div class="transfer-title">Change of train required</div>
-        <div class="transfer-inst">${step.xferNote}</div>
-      </div>`;
-    }
+        <span class="plat-dir">towards ${escHtml(step.direction)}</span>
+      </div>`:'';
+    const xfer=step.xferNote?`<div class="transfer-box"><div class="transfer-title">Change trains</div><div class="transfer-inst">${step.xferNote}</div></div>`:'';
+    const stops=step.stops&&step.stops.length?`<details class="stops-list ${step.line}">
+        <summary>${step.stops.length} stop${step.stops.length!==1?'s':''} before ${escHtml(step.to)}</summary>
+        <ol>${step.stops.map(n=>`<li>${escHtml(n)}</li>`).join('')}</ol>
+      </details>`:'';
     return`<div class="step-row">
       <div class="step-line-col">
-        <div class="step-dot ${step.type}">${icons[step.type]||'·'}</div>
+        <div class="step-dot ${step.type} ${step.line||''}">${ICON[step.type]||''}</div>
         ${!isLast?`<div class="step-track ${step.trackLine||'solid'}"></div>`:''}
       </div>
       <div class="step-body">
         <div class="step-tag">${step.tag}</div>
         <div class="step-main">${step.main}</div>
         ${step.detail?`<div class="step-detail">${step.detail}</div>`:''}
-        ${platHtml}${xferHtml}
+        ${plat}${stops}${xfer}
       </div>
     </div>`;
   }).join('');
 
+  document.getElementById('plan-quick')?.classList.add('hidden');
   const el=document.getElementById('plan-result');
-  el.innerHTML=`${summary}<div class="steps-section"><p class="steps-heading">Step-by-step directions</p><div>${stepsHtml}</div></div>`;
+  el.innerHTML=`${summary}<div class="steps-section"><p class="steps-heading">Step-by-step</p><div>${stepsHtml}</div></div>`;
   el.style.display='block';
 }
 
-function buildSteps(path,walkKm){
-  const steps=[];
-  const LN={purple:'Purple Line',green:'Green Line',yellow:'Yellow Line'};
-
-  // Segment grouping
+// Split a path into runs on the same line.
+function segmentsOf(path){
   const segs=[];
-  let sl=path[0].line||path[1]?.line,ss=0;
+  let sl=path[1]?.line||path[0].line,ss=0;
   for(let i=1;i<=path.length;i++){
     if(i===path.length||(path[i]&&path[i].line!==sl)){
       segs.push({line:sl,from:ss,to:i-1});
       if(i<path.length&&path[i]){sl=path[i].line;ss=i-1;}
     }
   }
+  return segs;
+}
 
-  // Walk to first station
+function buildSteps(path,walkKm){
+  const steps=[];
+  const segs=segmentsOf(path);
   const wm=Math.max(1,Math.round((walkKm/5)*60));
-  steps.push({type:'walk',tag:'Walk',main:`Walk to ${path[0].name}`,detail:`About ${walkKm.toFixed(1)} km · approx. ${wm} min on foot`,trackLine:'dashed'});
+  steps.push({type:'walk',tag:`Walk · ${wm} min`,main:`Walk to ${escHtml(path[0].name)}`,detail:`About ${walkKm.toFixed(1)} km to the station entrance`,trackLine:'dashed'});
 
   segs.forEach((seg,si)=>{
     const from=path[seg.from],to=path[seg.to];
     const count=seg.to-seg.from;
     const ln=LN[seg.line]||seg.line;
     const pi=getPlatformInfo(seg.line,from.id,to.id);
-
-    // Board
-    steps.push({type:'board',tag:'Board train',main:`${ln} from ${from.name}`,detail:`${count} stop${count!==1?'s':''} to ${to.name}`,line:seg.line,platform:pi.platform,direction:pi.direction,trackLine:seg.line});
-
-    // Travel (only show if >1 stop for clarity)
-    if(count>1){
-      steps.push({type:'travel',tag:'On board',main:`Travelling towards ${pi.direction}`,detail:`${count-1} intermediate stop${count-1!==1?'s':''}`,trackLine:seg.line});
-    }
-
-    // Transfer or alight
+    steps.push({type:'board',tag:`${ln} · ${count} stop${count!==1?'s':''}`,main:`Board at ${escHtml(from.name)}`,detail:`Ride to ${escHtml(to.name)}`,
+      line:seg.line,platform:pi.platform,direction:pi.direction,trackLine:seg.line,
+      stops:path.slice(seg.from+1,seg.to).map(s=>s.name),to:to.name});
     if(si<segs.length-1){
       const next=segs[si+1];
       const npi=getPlatformInfo(next.line,path[next.from].id,path[next.to].id);
-      steps.push({type:'transfer',tag:'Change trains',main:`Alight at ${to.name}`,detail:`Transfer to ${LN[next.line]}`,xferNote:`Exit the ${ln}. Follow interchange signs to <strong>Platform ${npi.platform}</strong> of the ${LN[next.line]} (towards ${npi.direction}). Allow 5–7 minutes.`,trackLine:next.line});
+      steps.push({type:'transfer',tag:'Interchange · 5–7 min',main:`Change at ${escHtml(to.name)}`,detail:`Switch to the ${LN[next.line]}`,
+        xferNote:`Follow the ${LN[next.line]} signs to <strong>Platform ${npi.platform}</strong>, towards ${escHtml(npi.direction)}.`,trackLine:next.line});
     }
   });
 
   const last=path[path.length-1];
-  steps.push({type:'alight',tag:'Alight',main:`Get off at ${last.name}`,detail:'This is your destination station',trackLine:'solid'});
-  steps.push({type:'arrive',tag:'Arrive',main:'Walk to your destination',detail:'Your destination is a short walk from the station exit'});
+  steps.push({type:'arrive',tag:'Arrive',main:`Get off at ${escHtml(last.name)}`,detail:'Exit the station — you\'ve arrived'});
   return steps;
 }
 
@@ -1179,57 +1290,79 @@ function tiles(map){
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxZoom:16,opacity:.8}).addTo(map);
 }
 
-function drawLines(map){
-  const drawn=new Set();
+// Network layers per map, so a planned route can dim everything else.
+const NET={};
+function lineOrder(line){return METRO.stations.filter(s=>s.seq[line]!=null).sort((a,b)=>a.seq[line]-b.seq[line]);}
+
+function drawLines(map,key){
+  const layers=[];
+  ['green','yellow','purple'].forEach(line=>{
+    const pts=lineOrder(line).map(s=>[s.lat,s.lng]);
+    // White casing under each line keeps it crisp over the basemap.
+    layers.push(L.polyline(pts,{color:'#fff',weight:8,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(map));
+    layers.push(L.polyline(pts,{color:LC[line],weight:4.5,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(map));
+  });
+  NET[key]={lines:layers,stations:[]};
+}
+
+function drawStations(map,key,labels){
   METRO.stations.forEach(s=>{
-    s.connections.forEach(cid=>{
-      const key=[s.id,cid].sort().join('|');
-      if(drawn.has(key))return;drawn.add(key);
-      const nb=SM[cid];if(!nb)return;
-      const line=s.lines.find(l=>nb.lines.includes(l))||s.lines[0];
-      L.polyline([[s.lat,s.lng],[nb.lat,nb.lng]],{color:LC[line]||'#888',weight:3.5,opacity:.8}).addTo(map);
-    });
+    const big=s.isInterchange;
+    const m=L.circleMarker([s.lat,s.lng],{
+      radius:big?6.5:s.isTerminal?5:3.6,fillColor:'#fff',fillOpacity:1,
+      color:big?'#17140F':LC[s.lines[0]],weight:big?2.6:2,
+    }).addTo(map);
+    m.bindTooltip(escHtml(s.name),{direction:'top',offset:[0,-6],className:'stn-tip',permanent:!!labels&&(big||s.isTerminal)});
+    const chips=s.lines.map(l=>`<span class="lc ${l}">${LN[l]}</span>`).join(' ');
+    m.bindPopup(`<div class="pop-name">${escHtml(s.name)}</div><div class="pop-chips">${chips}</div>${big?'<div class="pop-ic">Interchange</div>':''}`);
+    NET[key].stations.push(m);
   });
 }
 
-function drawStations(map){
-  METRO.stations.forEach(s=>{
-    const c=LC[s.lines[0]]||'#888';
-    const sz=s.isInterchange?12:s.isTerminal?10:7;
-    const icon=L.divIcon({html:`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${c};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.18)"></div>`,className:'',iconAnchor:[sz/2,sz/2]});
-    const m=L.marker([s.lat,s.lng],{icon}).addTo(map);
-    const chips=s.lines.map(l=>`<span style="background:${LC[l]};color:white;padding:1px 5px;border-radius:3px;font-size:10px">${l[0].toUpperCase()}L</span>`).join(' ');
-    m.bindPopup(`<b style="font-size:12px">${s.name}</b><br><div style="margin:4px 0">${chips}</div>${s.isInterchange?'<span style="font-size:10px;color:#888">⇄ Interchange</span>':''}`);
-  });
+function setNetworkDim(key,dim){
+  const n=NET[key];if(!n)return;
+  n.lines.forEach(l=>l.setStyle({opacity:dim?(l.options.color==='#fff'?.6:.22):1}));
+  n.stations.forEach(m=>m.setStyle({opacity:dim?.25:1,fillOpacity:dim?.4:1}));
 }
 
 function initPlannerMap(){
-  const m=L.map('main-map',{center:[12.9716,77.5946],zoom:12,zoomControl:false});
+  const m=L.map('main-map',{center:[12.9716,77.5946],zoom:12,zoomControl:false,zoomSnap:.25});
   L.control.zoom({position:'topright'}).addTo(m);
-  tiles(m);S.plannerMap=m;drawLines(m);drawStations(m);
+  tiles(m);S.plannerMap=m;drawLines(m,'plan');drawStations(m,'plan');
+  requestAnimationFrame(()=>{m.invalidateSize();m.fitBounds(METRO.stations.map(s=>[s.lat,s.lng]),{padding:[40,40]});});
 }
 
 function drawRoute(path,sLat,sLng,dLat,dLng){
   const m=S.plannerMap;
+  m.invalidateSize();
   S.routeLayers.forEach(l=>m.removeLayer(l));S.routeLayers=[];
-  for(let i=1;i<path.length;i++){
-    const a=path[i-1],b=path[i];
-    S.routeLayers.push(L.polyline([[a.lat,a.lng],[b.lat,b.lng]],{color:LC[b.line]||'#333',weight:6,opacity:1}).addTo(m));
-  }
-  const mkr=(lat,lng,col,label)=>{
-    const ic=L.divIcon({html:`<div style="width:14px;height:14px;border-radius:50%;background:${col};border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.25)"></div>`,className:'',iconAnchor:[7,7]});
-    return L.marker([lat,lng],{icon:ic}).addTo(m).bindPopup(label);
-  };
-  S.routeLayers.push(mkr(sLat,sLng,'#2A8B47','<b>Your location</b>'));
-  S.routeLayers.push(mkr(dLat,dLng,'#5B2D8E','<b>Destination</b>'));
-  m.fitBounds(L.latLngBounds([[sLat,sLng],...path.map(s=>[s.lat,s.lng]),[dLat,dLng]]),{padding:[60,60]});
+  setNetworkDim('plan',true);
+  const add=l=>{S.routeLayers.push(l.addTo(m));return l;};
+  // Walk from your location to the boarding station.
+  add(L.polyline([[sLat,sLng],[path[0].lat,path[0].lng]],{color:'#6A6156',weight:3,dashArray:'2 7',lineCap:'round',interactive:false}));
+  segmentsOf(path).forEach(sg=>{
+    const pts=path.slice(sg.from,sg.to+1).map(s=>[s.lat,s.lng]);
+    add(L.polyline(pts,{color:'#fff',weight:12,lineCap:'round',lineJoin:'round',interactive:false}));
+    add(L.polyline(pts,{color:LC[sg.line],weight:7,lineCap:'round',lineJoin:'round',interactive:false}));
+  });
+  path.forEach((s,i)=>{
+    const first=i===0,last=i===path.length-1;
+    const key=first||last||(path[i+1]&&path[i+1].line!==s.line&&i>0);
+    // Boarding label goes below so it doesn't collide with a nearby interchange label above.
+    add(L.circleMarker([s.lat,s.lng],{radius:key?6:3.2,fillColor:'#fff',fillOpacity:1,color:key?'#17140F':LC[path[i+1]?.line||s.line],weight:key?2.6:1.8})
+      .bindTooltip(escHtml(s.name),{direction:first?'bottom':'top',offset:[0,first?8:-6],className:'stn-tip',permanent:key}));
+  });
+  const pin=(lat,lng,cls,label)=>add(L.marker([lat,lng],{icon:L.divIcon({html:`<div class="${cls}"></div>`,className:'',iconSize:[22,22],iconAnchor:[11,11]}),zIndexOffset:1000}).bindTooltip(label,{direction:'bottom',offset:[0,10],className:'stn-tip'}));
+  pin(sLat,sLng,'pin-start','You');
+  const pad=Math.round(Math.min(90,m.getSize().x*.12));
+  m.fitBounds(L.latLngBounds([[sLat,sLng],...path.map(s=>[s.lat,s.lng])]),{padding:[pad+20,pad]});
 }
 
 function initMetroMap(){
   // Zoom buttons go bottom-right so they don't sit on the legend card.
   const m=L.map('metro-map-full',{center:[12.9716,77.5946],zoom:11,zoomControl:false,zoomSnap:.25});
   L.control.zoom({position:'bottomright'}).addTo(m);
-  tiles(m);S.metroMap=m;drawLines(m);drawStations(m);
+  tiles(m);S.metroMap=m;drawLines(m,'net');drawStations(m,'net',true);
   // The page has only just become visible, so measure the container before fitting.
   requestAnimationFrame(()=>{m.invalidateSize();m.fitBounds(METRO.stations.map(s=>[s.lat,s.lng]),{padding:[60,60]});});
 }
@@ -1301,6 +1434,17 @@ function renderCounts(){
     const l=el.dataset.count;el.textContent=st.filter(s=>s.lines.includes(l)).length;
   });
 }
+function quickDest(id){
+  selectStn(id,'plan','dest');
+  const ok=S.srcLat.plan&&S.srcLng.plan;
+  if(ok)planRoute();
+  else{
+    // No start yet: nudge towards the From field instead of erroring.
+    const inp=S.mode.plan==='addr'?document.getElementById('plan-addr-input'):document.getElementById('plan-gps-action-btn');
+    inp?.focus();
+  }
+}
+
 renderHero();renderCounts();
 </script>
 </body>
