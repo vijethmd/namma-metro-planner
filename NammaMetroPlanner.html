@@ -318,6 +318,7 @@ header{background:var(--ink);color:var(--cream);padding:0 2rem;height:56px;displ
           <div id="home-addr-panel" style="display:none">
             <div class="addr-wrap">
               <input type="text" class="address-input" id="home-addr-input" placeholder="e.g. 12th Main, Indiranagar, Bengaluru" oninput="handleAddrInput(this,'home')" autocomplete="off"/>
+              <div class="autocomplete" id="home-addr-ac"></div>
             </div>
             <p class="search-hint">Enter your address or a nearby landmark in Bengaluru</p>
             <p class="addr-resolving" id="home-addr-resolving">⟳ Finding location…</p>
@@ -389,6 +390,7 @@ header{background:var(--ink);color:var(--cream);padding:0 2rem;height:56px;displ
           <div id="plan-addr-panel" style="display:none">
             <div class="addr-wrap">
               <input type="text" class="address-input" id="plan-addr-input" placeholder="e.g. Koramangala 5th Block, Bengaluru" oninput="handleAddrInput(this,'plan')" autocomplete="off"/>
+              <div class="autocomplete" id="plan-addr-ac"></div>
             </div>
             <p class="search-hint">Type your address or a nearby landmark</p>
             <p class="addr-resolving" id="plan-addr-resolving">⟳ Finding location…</p>
@@ -469,6 +471,8 @@ header{background:var(--ink);color:var(--cream);padding:0 2rem;height:56px;displ
   </div>
 </div>
 
+<!-- Optional: defines window.GOOGLE_MAPS_API_KEY. Copy config.example.js → config.js. -->
+<script src="config.js"></script>
 <script>
 // ════════════════════════════════════════════════
 //  METRO DATASET
@@ -721,14 +725,85 @@ function gpsErr(ctx,btn,msg){
 }
 
 // ── ADDRESS GEOCODING ──
+// Uses Google Places Autocomplete (New) when window.GOOGLE_MAPS_API_KEY is set
+// via config.js; otherwise falls back to Nominatim.
+const BLR_BOUNDS={south:12.75,west:77.35,north:13.20,east:77.85};
+let placesLib=null,placesToken=null,placesSugg={home:[],plan:[]};
+
+function loadPlaces(){
+  const key=window.GOOGLE_MAPS_API_KEY;
+  if(!key||key==='YOUR_KEY_HERE')return;
+  // Google's dynamic bootstrap loader, so importLibrary() is available.
+  (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key,v:"weekly",region:"IN",language:"en"});
+  google.maps.importLibrary('places')
+    .then(lib=>{placesLib=lib;})
+    .catch(e=>console.warn('Places unavailable, using Nominatim:',e));
+}
+loadPlaces();
+
 let gTimer=null;
 function handleAddrInput(el,ctx){
   clearTimeout(gTimer);
   S.srcLat[ctx]=null;S.srcLng[ctx]=null;
   const rv=document.getElementById(`${ctx}-addr-resolving`);
+  const ac=document.getElementById(`${ctx}-addr-ac`);
+  if(rv){rv.style.color='';rv.innerHTML='⟳ Finding location…';}
+  if(placesLib){
+    if(rv)rv.style.display='none';
+    if(el.value.trim().length<3){ac.style.display='none';return;}
+    gTimer=setTimeout(()=>placesSuggest(el.value,ctx,ac),250);
+    return;
+  }
   if(el.value.length<4){if(rv)rv.style.display='none';return;}
   if(rv)rv.style.display='block';
   gTimer=setTimeout(()=>geocode(el.value,ctx,el,rv),700);
+}
+
+const escHtml=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function placesSuggest(q,ctx,ac){
+  if(!placesToken)placesToken=new placesLib.AutocompleteSessionToken();
+  try{
+    const {suggestions}=await placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      input:q,sessionToken:placesToken,
+      locationRestriction:BLR_BOUNDS,includedRegionCodes:['in'],
+    });
+    const preds=suggestions.map(s=>s.placePrediction).filter(Boolean).slice(0,6);
+    placesSugg[ctx]=preds;
+    if(!preds.length){ac.style.display='none';return;}
+    ac.innerHTML=preds.map((p,i)=>
+      `<div class="ac-item" onclick="selectPlace('${ctx}',${i})"><span class="ac-name">${escHtml(p.mainText?.text||p.text.text)}<br><small style="color:var(--ink4)">${escHtml(p.secondaryText?.text||'')}</small></span></div>`
+    ).join('');
+    ac.style.display='block';
+  }catch(e){
+    // Bad/restricted key or quota: drop back to Nominatim for the rest of the session.
+    console.warn('Places autocomplete failed, falling back to Nominatim:',e);
+    ac.style.display='none';placesLib=null;
+    const el=document.getElementById(`${ctx}-addr-input`);
+    handleAddrInput(el,ctx);
+  }
+}
+
+async function selectPlace(ctx,i){
+  const pred=placesSugg[ctx][i];if(!pred)return;
+  const el=document.getElementById(`${ctx}-addr-input`);
+  const ac=document.getElementById(`${ctx}-addr-ac`);
+  const rv=document.getElementById(`${ctx}-addr-resolving`);
+  ac.style.display='none';
+  el.value=pred.text.text;
+  try{
+    const place=pred.toPlace();
+    await place.fetchFields({fields:['location','displayName']});
+    placesToken=null; // session ends on details fetch
+    S.srcLat[ctx]=place.location.lat();
+    S.srcLng[ctx]=place.location.lng();
+    S.srcName[ctx]=pred.mainText?.text||place.displayName||el.value;
+    el.style.borderColor='var(--green)';
+    setTimeout(()=>{el.style.borderColor='';},2000);
+  }catch(e){
+    console.warn('Place details failed:',e);
+    if(rv){rv.style.display='block';rv.style.color='var(--red)';rv.innerHTML='⚠ Could not get that location. Try another suggestion.';}
+  }
 }
 
 async function geocode(q,ctx,el,rv){
@@ -773,7 +848,7 @@ function selectStn(id,ctx,field){
 }
 
 document.addEventListener('click',e=>{
-  if(!e.target.classList.contains('stn-input')&&!e.target.classList.contains('ac-item'))
+  if(!e.target.closest('.stn-input,.address-input,.ac-item'))
     document.querySelectorAll('.autocomplete').forEach(a=>a.style.display='none');
 });
 
