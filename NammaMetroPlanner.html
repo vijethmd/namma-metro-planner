@@ -294,7 +294,7 @@ header{background:rgba(23,20,15,.96);-webkit-backdrop-filter:saturate(1.4) blur(
 .about-card{background:var(--surface);border-radius:14px;padding:1.25rem 1.4rem;margin-bottom:.75rem;box-shadow:var(--shadow-sm),0 0 0 1px var(--rule);}
 .about-card-title{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--purple);margin-bottom:.45rem;}
 .about-card-body{font-size:.9rem;color:var(--ink2);line-height:1.7;}
-.fare-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border-radius:10px;overflow:hidden;}
+.fare-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border-radius:10px;overflow:hidden;}
 .fare-grid>div{background:var(--surface);padding:12px 14px;font-size:.78rem;color:var(--ink3);font-variant-numeric:tabular-nums;}
 .fare-grid strong{display:block;font-size:1.15rem;font-weight:600;color:var(--ink);margin-top:2px;letter-spacing:-.01em;}
 
@@ -342,7 +342,6 @@ header{background:rgba(23,20,15,.96);-webkit-backdrop-filter:saturate(1.4) blur(
   .summary-card{margin:1rem 1rem 0;}
   .steps-section{margin:1rem 1rem 1.25rem;padding:1rem 1rem 0;}
   .live-badge span.lb-text{display:none;}
-  .fare-grid{grid-template-columns:repeat(2,1fr);}
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -556,8 +555,9 @@ header{background:rgba(23,20,15,.96);-webkit-backdrop-filter:saturate(1.4) blur(
     <div class="about-section">
       <h2 class="about-section-title">Fare structure (BMRCL)</h2>
       <div class="fare-grid">
-        <div>0–2 km<strong>₹10</strong></div><div>2–4 km<strong>₹15</strong></div><div>4–6 km<strong>₹20</strong></div><div>6–8 km<strong>₹25</strong></div>
-        <div>8–12 km<strong>₹30</strong></div><div>12–19 km<strong>₹35</strong></div><div>19–26 km<strong>₹40</strong></div><div>26+ km<strong>₹60</strong></div>
+        <div>0–2 km<strong>₹10</strong></div><div>2–4 km<strong>₹20</strong></div><div>4–6 km<strong>₹30</strong></div><div>6–8 km<strong>₹40</strong></div>
+        <div>8–10 km<strong>₹50</strong></div><div>10–15 km<strong>₹60</strong></div><div>15–20 km<strong>₹70</strong></div><div>20–25 km<strong>₹80</strong></div>
+        <div>25+ km<strong>₹90</strong></div>
       </div>
     </div>
   </div>
@@ -578,10 +578,11 @@ header{background:rgba(23,20,15,.96);-webkit-backdrop-filter:saturate(1.4) blur(
 //  METRO DATASET
 // ════════════════════════════════════════════════
 const METRO = {
+  // BMRCL fare slabs by distance (₹10–₹90), in force since Feb 2025.
   fareRules:[
-    {min:0,max:2,fare:10},{min:2,max:4,fare:15},{min:4,max:6,fare:20},
-    {min:6,max:8,fare:25},{min:8,max:12,fare:30},{min:12,max:19,fare:35},
-    {min:19,max:26,fare:40},{min:26,max:999,fare:60}
+    {min:0,max:2,fare:10},{min:2,max:4,fare:20},{min:4,max:6,fare:30},
+    {min:6,max:8,fare:40},{min:8,max:10,fare:50},{min:10,max:15,fare:60},
+    {min:15,max:20,fare:70},{min:20,max:25,fare:80},{min:25,max:999,fare:90}
   ],
   // seq = station order on that line (for platform direction logic)
   // Platform 1 = towards lower seq (terminal 0)
@@ -591,97 +592,96 @@ const METRO = {
     green: {t0:'madavara',t1:'silk_institute',t0Name:'Madavara',t1Name:'Silk Institute'},
     yellow:{t0:'rv_road',t1:'bommasandra',t0Name:'RV Road',t1Name:'Bommasandra'}
   },
+  // Station order and coordinates from OpenStreetMap route relations
+  // (Purple 7841331, Green 7842287, Yellow 19421944), checked Oct 2026.
+  // One entry per physical station; interchanges list every line they serve.
   stations:[
     // PURPLE LINE
-    {id:'challaghatta',name:'Challaghatta',lines:['purple'],lat:12.9116,lng:77.4922,isInterchange:false,isTerminal:true,seq:{purple:1},connections:['kengeri']},
-    {id:'kengeri',name:'Kengeri',lines:['purple'],lat:12.9168,lng:77.4848,isInterchange:false,isTerminal:false,seq:{purple:2},connections:['challaghatta','belagondanahalli']},
-    {id:'belagondanahalli',name:'Belagondanahalli',lines:['purple'],lat:12.9201,lng:77.4939,isInterchange:false,isTerminal:false,seq:{purple:3},connections:['kengeri','jnanabharathi']},
-    {id:'jnanabharathi',name:'Jnanabharathi',lines:['purple'],lat:12.9244,lng:77.5033,isInterchange:false,isTerminal:false,seq:{purple:4},connections:['belagondanahalli','pattanagere']},
-    {id:'pattanagere',name:'Pattanagere',lines:['purple'],lat:12.9268,lng:77.5118,isInterchange:false,isTerminal:false,seq:{purple:5},connections:['jnanabharathi','kengeri_bt']},
-    {id:'kengeri_bt',name:'Kengeri Bus Terminal',lines:['purple'],lat:12.9291,lng:77.5181,isInterchange:false,isTerminal:false,seq:{purple:6},connections:['pattanagere','mysore_road_p']},
-    {id:'mysore_road_p',name:'Mysore Road',lines:['purple'],lat:12.9472,lng:77.5298,isInterchange:false,isTerminal:false,seq:{purple:7},connections:['kengeri_bt','magadi_road']},
-    {id:'magadi_road',name:'Nadaprabhu Kempegowda Station, Magadi Road',lines:['purple'],lat:12.9531,lng:77.5451,isInterchange:false,isTerminal:false,seq:{purple:8},connections:['mysore_road_p','hosahalli']},
-    {id:'hosahalli',name:'Sri Balagangadharanatha Swamiji Stn.',lines:['purple'],lat:12.9573,lng:77.5529,isInterchange:false,isTerminal:false,seq:{purple:9},connections:['magadi_road','vijayanagar']},
-    {id:'vijayanagar',name:'Vijayanagar',lines:['purple'],lat:12.9619,lng:77.5564,isInterchange:false,isTerminal:false,seq:{purple:10},connections:['hosahalli','attiguppe']},
-    {id:'attiguppe',name:'Attiguppe',lines:['purple'],lat:12.9658,lng:77.5593,isInterchange:false,isTerminal:false,seq:{purple:11},connections:['vijayanagar','deepanjali_nagar']},
-    {id:'deepanjali_nagar',name:'Deepanjali Nagar',lines:['purple'],lat:12.9688,lng:77.5634,isInterchange:false,isTerminal:false,seq:{purple:12},connections:['attiguppe','mysuru_road']},
-    {id:'mysuru_road',name:'Mysuru Road',lines:['purple'],lat:12.9716,lng:77.5662,isInterchange:false,isTerminal:false,seq:{purple:13},connections:['deepanjali_nagar','bmich']},
-    {id:'bmich',name:'BMICH World Trade Centre',lines:['purple'],lat:12.9736,lng:77.5694,isInterchange:false,isTerminal:false,seq:{purple:14},connections:['mysuru_road','ksr_bengaluru']},
-    {id:'ksr_bengaluru',name:'KSR Bengaluru City Railway Stn.',lines:['purple'],lat:12.9766,lng:77.5713,isInterchange:false,isTerminal:false,seq:{purple:15},connections:['bmich','majestic']},
-    {id:'majestic',name:'Majestic (Kempegowda)',lines:['purple','green'],lat:12.9779,lng:77.5713,isInterchange:true,isTerminal:false,seq:{purple:16,green:12},connections:['ksr_bengaluru','chickpet','sandal_soap_factory','sampige_road','city_market']},
-    {id:'chickpet',name:'Chickpet',lines:['purple'],lat:12.9718,lng:77.5759,isInterchange:false,isTerminal:false,seq:{purple:17},connections:['majestic','kr_market']},
-    {id:'kr_market',name:'K.R. Market',lines:['purple'],lat:12.9682,lng:77.5778,isInterchange:false,isTerminal:false,seq:{purple:18},connections:['chickpet','national_college_p']},
-    {id:'national_college_p',name:'National College',lines:['purple'],lat:12.9655,lng:77.5799,isInterchange:false,isTerminal:false,seq:{purple:19},connections:['kr_market','lalbagh_p']},
-    {id:'lalbagh_p',name:'Lalbagh',lines:['purple'],lat:12.9614,lng:77.5831,isInterchange:false,isTerminal:false,seq:{purple:20},connections:['national_college_p','south_end_circle']},
-    {id:'south_end_circle',name:'South End Circle',lines:['purple'],lat:12.9572,lng:77.5862,isInterchange:false,isTerminal:false,seq:{purple:21},connections:['lalbagh_p','jayanagar_p']},
-    {id:'jayanagar_p',name:'Jayanagar',lines:['purple'],lat:12.9498,lng:77.5836,isInterchange:false,isTerminal:false,seq:{purple:22},connections:['south_end_circle','rv_road']},
-    {id:'rv_road',name:'RV Road',lines:['purple','yellow'],lat:12.9398,lng:77.5847,isInterchange:true,isTerminal:false,seq:{purple:23,yellow:1},connections:['jayanagar_p','banashankari','bommanahalli']},
-    {id:'banashankari',name:'Banashankari',lines:['purple'],lat:12.9264,lng:77.5674,isInterchange:false,isTerminal:false,seq:{purple:24},connections:['rv_road','jp_nagar']},
-    {id:'jp_nagar',name:'J.P. Nagar',lines:['purple'],lat:12.9134,lng:77.5893,isInterchange:false,isTerminal:false,seq:{purple:25},connections:['banashankari','yelachenahalli']},
-    {id:'yelachenahalli',name:'Yelachenahalli',lines:['purple'],lat:12.8958,lng:77.5991,isInterchange:false,isTerminal:false,seq:{purple:26},connections:['jp_nagar','konanakunte_cross']},
-    {id:'konanakunte_cross',name:'Konanakunte Cross',lines:['purple'],lat:12.8892,lng:77.6012,isInterchange:false,isTerminal:false,seq:{purple:27},connections:['yelachenahalli','doddakallasandra']},
-    {id:'doddakallasandra',name:'Doddakallasandra',lines:['purple'],lat:12.8832,lng:77.6049,isInterchange:false,isTerminal:false,seq:{purple:28},connections:['konanakunte_cross','vajarahalli']},
-    {id:'vajarahalli',name:'Vajarahalli',lines:['purple'],lat:12.8789,lng:77.6079,isInterchange:false,isTerminal:false,seq:{purple:29},connections:['doddakallasandra','silk_institute']},
-    {id:'silk_institute',name:'Silk Institute',lines:['green'],lat:12.8742,lng:77.6081,isInterchange:false,isTerminal:true,seq:{green:29},connections:['vajarahalli']},
-    {id:'cubbon_park_p',name:'Cubbon Park',lines:['purple'],lat:12.9798,lng:77.5879,isInterchange:false,isTerminal:false,seq:{purple:16.5},connections:['majestic','mg_road']},
-    {id:'mg_road',name:'M.G Road',lines:['purple'],lat:12.9762,lng:77.6063,isInterchange:false,isTerminal:false,seq:{purple:17.5},connections:['cubbon_park_p','trinity']},
-    {id:'trinity',name:'Trinity',lines:['purple'],lat:12.9729,lng:77.6148,isInterchange:false,isTerminal:false,seq:{purple:18.5},connections:['mg_road','halasuru_p']},
-    {id:'halasuru_p',name:'Halasuru',lines:['purple'],lat:12.9744,lng:77.6253,isInterchange:false,isTerminal:false,seq:{purple:19.5},connections:['trinity','indiranagar']},
-    {id:'indiranagar',name:'Indiranagar',lines:['purple'],lat:12.9784,lng:77.6392,isInterchange:false,isTerminal:false,seq:{purple:20.5},connections:['halasuru_p','swami_vivekananda_road']},
-    {id:'swami_vivekananda_road',name:'Swami Vivekananda Road',lines:['purple'],lat:12.9799,lng:77.6487,isInterchange:false,isTerminal:false,seq:{purple:21.5},connections:['indiranagar','baiyappanahalli']},
-    {id:'baiyappanahalli',name:'Baiyappanahalli',lines:['purple'],lat:12.9899,lng:77.6573,isInterchange:false,isTerminal:false,seq:{purple:22.5},connections:['swami_vivekananda_road','kr_pura']},
-    {id:'kr_pura',name:'Krishnarajapura',lines:['purple'],lat:13.0000,lng:77.6933,isInterchange:false,isTerminal:false,seq:{purple:23.5},connections:['baiyappanahalli','benniganahalli']},
-    {id:'benniganahalli',name:'Benniganahalli',lines:['purple'],lat:13.0032,lng:77.7001,isInterchange:false,isTerminal:false,seq:{purple:24.5},connections:['kr_pura','hoodi']},
-    {id:'hoodi',name:'Hoodi',lines:['purple'],lat:13.0053,lng:77.7106,isInterchange:false,isTerminal:false,seq:{purple:25.5},connections:['benniganahalli','garudacharpalya']},
-    {id:'garudacharpalya',name:'Garudacharpalya',lines:['purple'],lat:13.0009,lng:77.7187,isInterchange:false,isTerminal:false,seq:{purple:26.5},connections:['hoodi','medahalli']},
-    {id:'medahalli',name:'Medahalli',lines:['purple'],lat:12.9968,lng:77.7243,isInterchange:false,isTerminal:false,seq:{purple:27.5},connections:['garudacharpalya','doddanakundi']},
-    {id:'doddanakundi',name:'Doddanakundi',lines:['purple'],lat:12.9928,lng:77.7293,isInterchange:false,isTerminal:false,seq:{purple:28.5},connections:['medahalli','sri_sathya_sai']},
-    {id:'sri_sathya_sai',name:'Sri Sathya Sai Hospital',lines:['purple'],lat:12.9868,lng:77.7363,isInterchange:false,isTerminal:false,seq:{purple:29.5},connections:['doddanakundi','nallurhalli']},
-    {id:'nallurhalli',name:'Nallurhalli',lines:['purple'],lat:12.9801,lng:77.7423,isInterchange:false,isTerminal:false,seq:{purple:30.5},connections:['sri_sathya_sai','kundalahalli']},
-    {id:'kundalahalli',name:'Kundalahalli',lines:['purple'],lat:12.9741,lng:77.7481,isInterchange:false,isTerminal:false,seq:{purple:31.5},connections:['nallurhalli','brookefield']},
-    {id:'brookefield',name:'Brookefield',lines:['purple'],lat:12.9691,lng:77.7539,isInterchange:false,isTerminal:false,seq:{purple:32.5},connections:['kundalahalli','whitefield']},
-    {id:'whitefield',name:'Whitefield (Kadugodi)',lines:['purple'],lat:12.9698,lng:77.7501,isInterchange:false,isTerminal:true,seq:{purple:33.5},connections:['brookefield']},
+    {id:'challaghatta',name:'Challaghatta',lines:['purple'],lat:12.89733,lng:77.46122,isInterchange:false,isTerminal:true,seq:{purple:1},connections:['kengeri']},
+    {id:'kengeri',name:'Kengeri',lines:['purple'],lat:12.90793,lng:77.47657,isInterchange:false,isTerminal:false,seq:{purple:2},connections:['challaghatta','kengeri_bt']},
+    {id:'kengeri_bt',name:'Kengeri Bus Terminal',lines:['purple'],lat:12.91471,lng:77.48785,isInterchange:false,isTerminal:false,seq:{purple:3},connections:['kengeri','pattanagere']},
+    {id:'pattanagere',name:'Pattanagere',lines:['purple'],lat:12.92426,lng:77.49834,isInterchange:false,isTerminal:false,seq:{purple:4},connections:['kengeri_bt','jnanabharathi']},
+    {id:'jnanabharathi',name:'Jnanabharathi',lines:['purple'],lat:12.93545,lng:77.5124,isInterchange:false,isTerminal:false,seq:{purple:5},connections:['pattanagere','rr_nagar']},
+    {id:'rr_nagar',name:'Rajarajeshwari Nagar',lines:['purple'],lat:12.93667,lng:77.51966,isInterchange:false,isTerminal:false,seq:{purple:6},connections:['jnanabharathi','nayandahalli']},
+    {id:'nayandahalli',name:'Pantharapalya – Nayandahalli',lines:['purple'],lat:12.94168,lng:77.5251,isInterchange:false,isTerminal:false,seq:{purple:7},connections:['rr_nagar','mysuru_road']},
+    {id:'mysuru_road',name:'Mysuru Road',lines:['purple'],lat:12.9467,lng:77.53007,isInterchange:false,isTerminal:false,seq:{purple:8},connections:['nayandahalli','deepanjali_nagar']},
+    {id:'deepanjali_nagar',name:'Deepanjali Nagar',lines:['purple'],lat:12.95203,lng:77.537,isInterchange:false,isTerminal:false,seq:{purple:9},connections:['mysuru_road','attiguppe']},
+    {id:'attiguppe',name:'Attiguppe',lines:['purple'],lat:12.96187,lng:77.53355,isInterchange:false,isTerminal:false,seq:{purple:10},connections:['deepanjali_nagar','vijayanagar']},
+    {id:'vijayanagar',name:'Vijayanagar',lines:['purple'],lat:12.97095,lng:77.53739,isInterchange:false,isTerminal:false,seq:{purple:11},connections:['attiguppe','hosahalli']},
+    {id:'hosahalli',name:'Hosahalli',lines:['purple'],lat:12.97422,lng:77.54562,isInterchange:false,isTerminal:false,seq:{purple:12},connections:['vijayanagar','magadi_road']},
+    {id:'magadi_road',name:'Magadi Road',lines:['purple'],lat:12.97565,lng:77.55535,isInterchange:false,isTerminal:false,seq:{purple:13},connections:['hosahalli','ksr_station']},
+    {id:'ksr_station',name:'KSR Railway Station',lines:['purple'],lat:12.9759,lng:77.56537,isInterchange:false,isTerminal:false,seq:{purple:14},connections:['magadi_road','majestic']},
+    {id:'majestic',name:'Majestic (Kempegowda)',lines:['purple','green'],lat:12.97541,lng:77.57306,isInterchange:true,isTerminal:false,seq:{purple:15,green:17},connections:['ksr_station','central_college','sampige_road','chickpet']},
+    {id:'central_college',name:'Sir M. Visvesvaraya (Central College)',lines:['purple'],lat:12.97454,lng:77.58421,isInterchange:false,isTerminal:false,seq:{purple:16},connections:['majestic','vidhana_soudha']},
+    {id:'vidhana_soudha',name:'Vidhana Soudha',lines:['purple'],lat:12.979,lng:77.59183,isInterchange:false,isTerminal:false,seq:{purple:17},connections:['central_college','cubbon_park']},
+    {id:'cubbon_park',name:'Cubbon Park',lines:['purple'],lat:12.98098,lng:77.59758,isInterchange:false,isTerminal:false,seq:{purple:18},connections:['vidhana_soudha','mg_road']},
+    {id:'mg_road',name:'MG Road',lines:['purple'],lat:12.97543,lng:77.60726,isInterchange:false,isTerminal:false,seq:{purple:19},connections:['cubbon_park','trinity']},
+    {id:'trinity',name:'Trinity',lines:['purple'],lat:12.97304,lng:77.61702,isInterchange:false,isTerminal:false,seq:{purple:20},connections:['mg_road','halasuru']},
+    {id:'halasuru',name:'Halasuru',lines:['purple'],lat:12.97652,lng:77.62667,isInterchange:false,isTerminal:false,seq:{purple:21},connections:['trinity','indiranagar']},
+    {id:'indiranagar',name:'Indiranagar',lines:['purple'],lat:12.97835,lng:77.63866,isInterchange:false,isTerminal:false,seq:{purple:22},connections:['halasuru','sv_road']},
+    {id:'sv_road',name:'Swami Vivekananda Road',lines:['purple'],lat:12.98595,lng:77.64489,isInterchange:false,isTerminal:false,seq:{purple:23},connections:['indiranagar','baiyappanahalli']},
+    {id:'baiyappanahalli',name:'Baiyappanahalli',lines:['purple'],lat:12.99071,lng:77.65237,isInterchange:false,isTerminal:false,seq:{purple:24},connections:['sv_road','benniganahalli']},
+    {id:'benniganahalli',name:'Benniganahalli',lines:['purple'],lat:12.99654,lng:77.66846,isInterchange:false,isTerminal:false,seq:{purple:25},connections:['baiyappanahalli','kr_puram']},
+    {id:'kr_puram',name:'KR Puram',lines:['purple'],lat:12.99994,lng:77.67791,isInterchange:false,isTerminal:false,seq:{purple:26},connections:['benniganahalli','singayyanapalya']},
+    {id:'singayyanapalya',name:'Singayyanapalya',lines:['purple'],lat:12.99645,lng:77.69305,isInterchange:false,isTerminal:false,seq:{purple:27},connections:['kr_puram','garudacharpalya']},
+    {id:'garudacharpalya',name:'Garudacharpalya',lines:['purple'],lat:12.99334,lng:77.70411,isInterchange:false,isTerminal:false,seq:{purple:28},connections:['singayyanapalya','hoodi']},
+    {id:'hoodi',name:'Hoodi',lines:['purple'],lat:12.98854,lng:77.71093,isInterchange:false,isTerminal:false,seq:{purple:29},connections:['garudacharpalya','seetharampalya']},
+    {id:'seetharampalya',name:'Seetharampalya',lines:['purple'],lat:12.98053,lng:77.7089,isInterchange:false,isTerminal:false,seq:{purple:30},connections:['hoodi','kundalahalli']},
+    {id:'kundalahalli',name:'Kundalahalli',lines:['purple'],lat:12.97753,lng:77.71608,isInterchange:false,isTerminal:false,seq:{purple:31},connections:['seetharampalya','nallurahalli']},
+    {id:'nallurahalli',name:'Nallurahalli',lines:['purple'],lat:12.97658,lng:77.72535,isInterchange:false,isTerminal:false,seq:{purple:32},connections:['kundalahalli','sathya_sai']},
+    {id:'sathya_sai',name:'Sri Sathya Sai Hospital',lines:['purple'],lat:12.98171,lng:77.72766,isInterchange:false,isTerminal:false,seq:{purple:33},connections:['nallurahalli','pattandur_agrahara']},
+    {id:'pattandur_agrahara',name:'Pattandur Agrahara',lines:['purple'],lat:12.98764,lng:77.73835,isInterchange:false,isTerminal:false,seq:{purple:34},connections:['sathya_sai','kadugodi_tree_park']},
+    {id:'kadugodi_tree_park',name:'Kadugodi Tree Park',lines:['purple'],lat:12.98548,lng:77.74754,isInterchange:false,isTerminal:false,seq:{purple:35},connections:['pattandur_agrahara','hopefarm']},
+    {id:'hopefarm',name:'Hopefarm Channasandra',lines:['purple'],lat:12.98753,lng:77.75397,isInterchange:false,isTerminal:false,seq:{purple:36},connections:['kadugodi_tree_park','whitefield']},
+    {id:'whitefield',name:'Whitefield (Kadugodi)',lines:['purple'],lat:12.99596,lng:77.75798,isInterchange:false,isTerminal:true,seq:{purple:37},connections:['hopefarm']},
     // GREEN LINE
-    {id:'madavara',name:'Madavara',lines:['green'],lat:13.0788,lng:77.4941,isInterchange:false,isTerminal:true,seq:{green:1},connections:['chikkabidarakallu']},
-    {id:'chikkabidarakallu',name:'Chikkabidarakallu',lines:['green'],lat:13.0696,lng:77.4989,isInterchange:false,isTerminal:false,seq:{green:2},connections:['madavara','manjunathanagar']},
-    {id:'manjunathanagar',name:'Manjunathanagar',lines:['green'],lat:13.0566,lng:77.5081,isInterchange:false,isTerminal:false,seq:{green:3},connections:['chikkabidarakallu','nagasandra']},
-    {id:'nagasandra',name:'Nagasandra',lines:['green'],lat:13.0472,lng:77.5143,isInterchange:false,isTerminal:false,seq:{green:4},connections:['manjunathanagar','dasarahalli']},
-    {id:'dasarahalli',name:'Dasarahalli',lines:['green'],lat:13.0378,lng:77.5176,isInterchange:false,isTerminal:false,seq:{green:5},connections:['nagasandra','jalahalli']},
-    {id:'jalahalli',name:'Jalahalli',lines:['green'],lat:13.0287,lng:77.5213,isInterchange:false,isTerminal:false,seq:{green:6},connections:['dasarahalli','peenya_industry']},
-    {id:'peenya_industry',name:'Peenya Industry',lines:['green'],lat:13.0248,lng:77.5214,isInterchange:false,isTerminal:false,seq:{green:7},connections:['jalahalli','peenya']},
-    {id:'peenya',name:'Peenya',lines:['green'],lat:13.0278,lng:77.5296,isInterchange:false,isTerminal:false,seq:{green:8},connections:['peenya_industry','goraguntepalya']},
-    {id:'goraguntepalya',name:'Goraguntepalya',lines:['green'],lat:13.0197,lng:77.5393,isInterchange:false,isTerminal:false,seq:{green:9},connections:['peenya','yeshwanthpur']},
-    {id:'yeshwanthpur',name:'Yeshwanthpur',lines:['green'],lat:13.0219,lng:77.5511,isInterchange:false,isTerminal:false,seq:{green:10},connections:['goraguntepalya','sandal_soap_factory']},
-    {id:'sandal_soap_factory',name:'Sandal Soap Factory',lines:['green'],lat:13.0101,lng:77.5568,isInterchange:false,isTerminal:false,seq:{green:11},connections:['yeshwanthpur','majestic']},
-    {id:'sampige_road',name:'Sampige Road',lines:['green'],lat:12.9916,lng:77.5623,isInterchange:false,isTerminal:false,seq:{green:13},connections:['majestic','mahalakshmi']},
-    {id:'mahalakshmi',name:'Mahalakshmi',lines:['green'],lat:12.9978,lng:77.5594,isInterchange:false,isTerminal:false,seq:{green:14},connections:['sampige_road','rajajinagar']},
-    {id:'rajajinagar',name:'Rajajinagar',lines:['green'],lat:13.0051,lng:77.5543,isInterchange:false,isTerminal:false,seq:{green:15},connections:['mahalakshmi','msramaiah']},
-    {id:'msramaiah',name:'M.S. Ramaiah Medical College',lines:['green'],lat:13.0248,lng:77.5653,isInterchange:false,isTerminal:false,seq:{green:16},connections:['rajajinagar','ulsoor_road']},
-    {id:'ulsoor_road',name:'Ulsoor Road',lines:['green'],lat:12.9891,lng:77.6216,isInterchange:false,isTerminal:false,seq:{green:17},connections:['msramaiah','halasuru_g']},
-    {id:'halasuru_g',name:'Halasuru (Green Line)',lines:['green'],lat:12.9876,lng:77.6107,isInterchange:false,isTerminal:false,seq:{green:18},connections:['ulsoor_road','cubbon_park_g']},
-    {id:'cubbon_park_g',name:'Cubbon Park (Green Line)',lines:['green'],lat:12.9831,lng:77.5984,isInterchange:false,isTerminal:false,seq:{green:19},connections:['halasuru_g','vidhana_soudha']},
-    {id:'vidhana_soudha',name:'Vidhana Soudha',lines:['green'],lat:12.9794,lng:77.5906,isInterchange:false,isTerminal:false,seq:{green:20},connections:['cubbon_park_g','sir_m_visvesvaraya']},
-    {id:'sir_m_visvesvaraya',name:'Sir M. Visvesvaraya',lines:['green'],lat:12.9712,lng:77.5831,isInterchange:false,isTerminal:false,seq:{green:21},connections:['vidhana_soudha','city_market']},
-    {id:'city_market',name:'City Market',lines:['green'],lat:12.9701,lng:77.5748,isInterchange:false,isTerminal:false,seq:{green:22},connections:['sir_m_visvesvaraya','majestic']},
-    {id:'chickpet_g',name:'Chickpet (Green Line)',lines:['green'],lat:12.9672,lng:77.5729,isInterchange:false,isTerminal:false,seq:{green:22.5},connections:['city_market','kr_market_g']},
-    {id:'kr_market_g',name:'Krishnarajendra Market',lines:['green'],lat:12.9623,lng:77.5726,isInterchange:false,isTerminal:false,seq:{green:23},connections:['chickpet_g','national_college_g']},
-    {id:'national_college_g',name:'National College (Green)',lines:['green'],lat:12.9566,lng:77.5712,isInterchange:false,isTerminal:false,seq:{green:24},connections:['kr_market_g','lalbagh_g']},
-    {id:'lalbagh_g',name:'Lalbagh (Green Line)',lines:['green'],lat:12.9497,lng:77.5721,isInterchange:false,isTerminal:false,seq:{green:25},connections:['national_college_g','jayanagar_g']},
-    {id:'jayanagar_g',name:'Jayanagar (Green Line)',lines:['green'],lat:12.9368,lng:77.5921,isInterchange:false,isTerminal:false,seq:{green:26},connections:['lalbagh_g','rv_road']},
+    {id:'madavara',name:'Madavara',lines:['green'],lat:13.05744,lng:77.47281,isInterchange:false,isTerminal:true,seq:{green:1},connections:['chikkabidarakallu']},
+    {id:'chikkabidarakallu',name:'Chikkabidarakallu',lines:['green'],lat:13.05238,lng:77.48792,isInterchange:false,isTerminal:false,seq:{green:2},connections:['madavara','manjunathanagara']},
+    {id:'manjunathanagara',name:'Manjunathanagara',lines:['green'],lat:13.05011,lng:77.49445,isInterchange:false,isTerminal:false,seq:{green:3},connections:['chikkabidarakallu','nagasandra']},
+    {id:'nagasandra',name:'Nagasandra',lines:['green'],lat:13.04798,lng:77.50015,isInterchange:false,isTerminal:false,seq:{green:4},connections:['manjunathanagara','dasarahalli']},
+    {id:'dasarahalli',name:'Dasarahalli',lines:['green'],lat:13.0433,lng:77.51256,isInterchange:false,isTerminal:false,seq:{green:5},connections:['nagasandra','jalahalli']},
+    {id:'jalahalli',name:'Jalahalli',lines:['green'],lat:13.03944,lng:77.51976,isInterchange:false,isTerminal:false,seq:{green:6},connections:['dasarahalli','peenya_industry']},
+    {id:'peenya_industry',name:'Peenya Industry',lines:['green'],lat:13.03634,lng:77.52553,isInterchange:false,isTerminal:false,seq:{green:7},connections:['jalahalli','peenya']},
+    {id:'peenya',name:'Peenya',lines:['green'],lat:13.03305,lng:77.53322,isInterchange:false,isTerminal:false,seq:{green:8},connections:['peenya_industry','goraguntepalya']},
+    {id:'goraguntepalya',name:'Goraguntepalya',lines:['green'],lat:13.02825,lng:77.54119,isInterchange:false,isTerminal:false,seq:{green:9},connections:['peenya','yeshwanthpur']},
+    {id:'yeshwanthpur',name:'Yeshwanthpur',lines:['green'],lat:13.02337,lng:77.54975,isInterchange:false,isTerminal:false,seq:{green:10},connections:['goraguntepalya','sandal_soap']},
+    {id:'sandal_soap',name:'Sandal Soap Factory',lines:['green'],lat:13.01472,lng:77.55403,isInterchange:false,isTerminal:false,seq:{green:11},connections:['yeshwanthpur','mahalakshmi']},
+    {id:'mahalakshmi',name:'Mahalakshmi',lines:['green'],lat:13.00807,lng:77.54882,isInterchange:false,isTerminal:false,seq:{green:12},connections:['sandal_soap','rajajinagar']},
+    {id:'rajajinagar',name:'Rajajinagar',lines:['green'],lat:13.00054,lng:77.5497,isInterchange:false,isTerminal:false,seq:{green:13},connections:['mahalakshmi','kuvempu_road']},
+    {id:'kuvempu_road',name:'Mahakavi Kuvempu Road',lines:['green'],lat:12.99852,lng:77.55688,isInterchange:false,isTerminal:false,seq:{green:14},connections:['rajajinagar','srirampura']},
+    {id:'srirampura',name:'Srirampura',lines:['green'],lat:12.99654,lng:77.56331,isInterchange:false,isTerminal:false,seq:{green:15},connections:['kuvempu_road','sampige_road']},
+    {id:'sampige_road',name:'Mantri Square Sampige Road',lines:['green'],lat:12.99048,lng:77.57076,isInterchange:false,isTerminal:false,seq:{green:16},connections:['srirampura','majestic']},
+    {id:'chickpet',name:'Chickpete',lines:['green'],lat:12.96692,lng:77.57457,isInterchange:false,isTerminal:false,seq:{green:18},connections:['majestic','kr_market']},
+    {id:'kr_market',name:'KR Market',lines:['green'],lat:12.96089,lng:77.57468,isInterchange:false,isTerminal:false,seq:{green:19},connections:['chickpet','national_college']},
+    {id:'national_college',name:'National College',lines:['green'],lat:12.95053,lng:77.57371,isInterchange:false,isTerminal:false,seq:{green:20},connections:['kr_market','lalbagh']},
+    {id:'lalbagh',name:'Lalbagh',lines:['green'],lat:12.94653,lng:77.58004,isInterchange:false,isTerminal:false,seq:{green:21},connections:['national_college','south_end_circle']},
+    {id:'south_end_circle',name:'South End Circle',lines:['green'],lat:12.93826,lng:77.58008,isInterchange:false,isTerminal:false,seq:{green:22},connections:['lalbagh','jayanagar']},
+    {id:'jayanagar',name:'Jayanagar',lines:['green'],lat:12.92951,lng:77.58017,isInterchange:false,isTerminal:false,seq:{green:23},connections:['south_end_circle','rv_road']},
+    {id:'rv_road',name:'RV Road',lines:['green','yellow'],lat:12.92096,lng:77.58019,isInterchange:true,isTerminal:true,seq:{green:24,yellow:1},connections:['jayanagar','banashankari','ragigudda']},
+    {id:'banashankari',name:'Banashankari',lines:['green'],lat:12.91522,lng:77.57362,isInterchange:false,isTerminal:false,seq:{green:25},connections:['rv_road','jp_nagar']},
+    {id:'jp_nagar',name:'JP Nagar',lines:['green'],lat:12.90748,lng:77.57315,isInterchange:false,isTerminal:false,seq:{green:26},connections:['banashankari','yelachenahalli']},
+    {id:'yelachenahalli',name:'Yelachenahalli',lines:['green'],lat:12.89604,lng:77.57014,isInterchange:false,isTerminal:false,seq:{green:27},connections:['jp_nagar','konanakunte_cross']},
+    {id:'konanakunte_cross',name:'Konanakunte Cross',lines:['green'],lat:12.88894,lng:77.5627,isInterchange:false,isTerminal:false,seq:{green:28},connections:['yelachenahalli','doddakallasandra']},
+    {id:'doddakallasandra',name:'Doddakallasandra',lines:['green'],lat:12.88462,lng:77.55278,isInterchange:false,isTerminal:false,seq:{green:29},connections:['konanakunte_cross','vajarahalli']},
+    {id:'vajarahalli',name:'Vajarahalli',lines:['green'],lat:12.87752,lng:77.54481,isInterchange:false,isTerminal:false,seq:{green:30},connections:['doddakallasandra','thalaghattapura']},
+    {id:'thalaghattapura',name:'Thalaghattapura',lines:['green'],lat:12.87139,lng:77.53842,isInterchange:false,isTerminal:false,seq:{green:31},connections:['vajarahalli','silk_institute']},
+    {id:'silk_institute',name:'Silk Institute',lines:['green'],lat:12.86167,lng:77.52995,isInterchange:false,isTerminal:true,seq:{green:32},connections:['thalaghattapura']},
     // YELLOW LINE
-    {id:'bommanahalli',name:'Bommanahalli',lines:['yellow'],lat:12.9148,lng:77.6181,isInterchange:false,isTerminal:false,seq:{yellow:2},connections:['rv_road','silk_board']},
-    {id:'silk_board',name:'Silk Board',lines:['yellow'],lat:12.9179,lng:77.6219,isInterchange:false,isTerminal:false,seq:{yellow:3},connections:['bommanahalli','jayadeva_hospital']},
-    {id:'jayadeva_hospital',name:'Jayadeva Hospital',lines:['yellow'],lat:12.9193,lng:77.6276,isInterchange:false,isTerminal:false,seq:{yellow:4},connections:['silk_board','harlur_road']},
-    {id:'harlur_road',name:'Harlur Road',lines:['yellow'],lat:12.9177,lng:77.6391,isInterchange:false,isTerminal:false,seq:{yellow:5},connections:['jayadeva_hospital','agara_lake']},
-    {id:'agara_lake',name:'Agara Lake',lines:['yellow'],lat:12.9148,lng:77.6497,isInterchange:false,isTerminal:false,seq:{yellow:6},connections:['harlur_road','hongasandra']},
-    {id:'hongasandra',name:'Hongasandra',lines:['yellow'],lat:12.9081,lng:77.6581,isInterchange:false,isTerminal:false,seq:{yellow:7},connections:['agara_lake','haralukunte']},
-    {id:'haralukunte',name:'Haralukunte',lines:['yellow'],lat:12.8991,lng:77.6672,isInterchange:false,isTerminal:false,seq:{yellow:8},connections:['hongasandra','kudlu_gate']},
-    {id:'kudlu_gate',name:'Kudlu Gate',lines:['yellow'],lat:12.8938,lng:77.6749,isInterchange:false,isTerminal:false,seq:{yellow:9},connections:['haralukunte','singasandra']},
-    {id:'singasandra',name:'Singasandra',lines:['yellow'],lat:12.8863,lng:77.6791,isInterchange:false,isTerminal:false,seq:{yellow:10},connections:['kudlu_gate','begur_road']},
-    {id:'begur_road',name:'Begur Road',lines:['yellow'],lat:12.8791,lng:77.6843,isInterchange:false,isTerminal:false,seq:{yellow:11},connections:['singasandra','hosa_road']},
-    {id:'hosa_road',name:'Hosa Road',lines:['yellow'],lat:12.8726,lng:77.6893,isInterchange:false,isTerminal:false,seq:{yellow:12},connections:['begur_road','electronic_city']},
-    {id:'electronic_city',name:'Electronic City',lines:['yellow'],lat:12.8458,lng:77.6692,isInterchange:false,isTerminal:false,seq:{yellow:13},connections:['hosa_road','bommasandra']},
-    {id:'bommasandra',name:'Bommasandra',lines:['yellow'],lat:12.8209,lng:77.6751,isInterchange:false,isTerminal:true,seq:{yellow:14},connections:['electronic_city']}
+    {id:'ragigudda',name:'Ragigudda',lines:['yellow'],lat:12.91709,lng:77.5887,isInterchange:false,isTerminal:false,seq:{yellow:2},connections:['rv_road','jayadeva']},
+    {id:'jayadeva',name:'Jayadeva Hospital',lines:['yellow'],lat:12.91676,lng:77.60044,isInterchange:false,isTerminal:false,seq:{yellow:3},connections:['ragigudda','btm_layout']},
+    {id:'btm_layout',name:'BTM Layout',lines:['yellow'],lat:12.9166,lng:77.60862,isInterchange:false,isTerminal:false,seq:{yellow:4},connections:['jayadeva','silk_board']},
+    {id:'silk_board',name:'Central Silk Board',lines:['yellow'],lat:12.91673,lng:77.62103,isInterchange:false,isTerminal:false,seq:{yellow:5},connections:['btm_layout','bommanahalli']},
+    {id:'bommanahalli',name:'Bommanahalli',lines:['yellow'],lat:12.9103,lng:77.6267,isInterchange:false,isTerminal:false,seq:{yellow:6},connections:['silk_board','hongasandra']},
+    {id:'hongasandra',name:'Hongasandra',lines:['yellow'],lat:12.90133,lng:77.63224,isInterchange:false,isTerminal:false,seq:{yellow:7},connections:['bommanahalli','kudlu_gate']},
+    {id:'kudlu_gate',name:'Kudlu Gate',lines:['yellow'],lat:12.88956,lng:77.63947,isInterchange:false,isTerminal:false,seq:{yellow:8},connections:['hongasandra','singasandra']},
+    {id:'singasandra',name:'Singasandra',lines:['yellow'],lat:12.88043,lng:77.64511,isInterchange:false,isTerminal:false,seq:{yellow:9},connections:['kudlu_gate','hosa_road']},
+    {id:'hosa_road',name:'Hosa Road',lines:['yellow'],lat:12.8704,lng:77.65275,isInterchange:false,isTerminal:false,seq:{yellow:10},connections:['singasandra','beratena_agrahara']},
+    {id:'beratena_agrahara',name:'Beratena Agrahara',lines:['yellow'],lat:12.86357,lng:77.6582,isInterchange:false,isTerminal:false,seq:{yellow:11},connections:['hosa_road','electronic_city']},
+    {id:'electronic_city',name:'Electronic City',lines:['yellow'],lat:12.85628,lng:77.66374,isInterchange:false,isTerminal:false,seq:{yellow:12},connections:['beratena_agrahara','konappana_agrahara']},
+    {id:'konappana_agrahara',name:'Infosys Foundation Konappana Agrahara',lines:['yellow'],lat:12.84609,lng:77.67145,isInterchange:false,isTerminal:false,seq:{yellow:13},connections:['electronic_city','huskur_road']},
+    {id:'huskur_road',name:'Huskur Road',lines:['yellow'],lat:12.83872,lng:77.67773,isInterchange:false,isTerminal:false,seq:{yellow:14},connections:['konappana_agrahara','hebbagodi']},
+    {id:'hebbagodi',name:'Biocon Hebbagodi',lines:['yellow'],lat:12.82859,lng:77.68155,isInterchange:false,isTerminal:false,seq:{yellow:15},connections:['huskur_road','bommasandra']},
+    {id:'bommasandra',name:'Delta Electronics Bommasandra',lines:['yellow'],lat:12.81909,lng:77.68866,isInterchange:false,isTerminal:true,seq:{yellow:16},connections:['hebbagodi']},
   ]
 };
 
@@ -700,8 +700,8 @@ function haversine(a,b,c,d){
 function buildGraph(){
   const g={},seen=new Set();
   METRO.stations.forEach(s=>{g[s.id]=[];});
-  // Some links are only listed on one end (e.g. cubbon_park_p→majestic), so add
-  // every edge in both directions — trains run both ways.
+  // Add every edge in both directions — trains run both ways, and a link
+  // listed on only one station must not leave the other end unreachable.
   METRO.stations.forEach(s=>{
     s.connections.forEach(cid=>{
       const nb=SM[cid];if(!nb)return;
